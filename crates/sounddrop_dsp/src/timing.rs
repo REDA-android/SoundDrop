@@ -35,8 +35,16 @@ impl SymbolTimingTracker {
         let search_radius = 4isize;
         let base_start = (expected_start as isize + self.accumulated_drift_samples).max(0);
 
+        // Energy at the current (prompt) position. The tracker only moves when another
+        // offset is clearly better; on a flat energy profile (clean tones with a wide
+        // plateau) this prevents a spurious random-walk drift estimate.
+        let prompt_energy = if base_start as usize + active_len <= pcm.len() {
+            Self::compute_energy(&pcm[base_start as usize..base_start as usize + active_len])
+        } else {
+            0.0
+        };
         let mut best_offset = 0isize;
-        let mut best_energy = -1.0f32;
+        let mut best_energy = prompt_energy * 1.02;
 
         for offset in -search_radius..=search_radius {
             let start = base_start + offset;

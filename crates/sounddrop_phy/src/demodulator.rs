@@ -223,4 +223,22 @@ mod tests {
             }
         }
     }
+
+    #[test]
+    fn test_no_false_drift_on_driftless_signal() {
+        for cfg in [PhyConfig::audible_robust_48k(), PhyConfig::audible_fast_48k()] {
+            let modulator = Modulator::new(cfg.clone());
+            let demodulator = Demodulator::new(cfg);
+            let syms: Vec<u8> = (0..64u32).map(|i| ((i * 5 + 1) % 16) as u8).collect();
+            let mut pcm = vec![0.0f32; 2400];
+            pcm.extend_from_slice(&modulator.modulate(&syms));
+            let r = demodulator.demodulate_buffer(&pcm, syms.len()).expect("decode");
+            assert_eq!(r.symbols, syms);
+            assert!(
+                r.clock_drift_ppm.abs() < 50.0,
+                "driftless signal reported {} PPM",
+                r.clock_drift_ppm
+            );
+        }
+    }
 }
