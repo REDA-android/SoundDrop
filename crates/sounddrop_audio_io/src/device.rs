@@ -91,16 +91,52 @@ pub fn play_samples_blocking(samples: &[f32], sample_rate: u32) -> Result<(), Au
     let mut device = Device::new(Some(context), &config)?;
 
     let total_samples = samples.len();
-    device.set_data_callback(move |_device, output, _input| {
-        let mut head = head_cb.lock().unwrap();
-        let out_slice = output.as_samples_mut::<f32>();
 
-        for s in out_slice.iter_mut() {
-            if *head < samples_cb.len() {
-                *s = samples_cb[*head];
-                *head += 1;
-            } else {
-                *s = 0.0;
+    device.set_data_callback(move |_device, output, _input| {
+        let Ok(mut head) = head_cb.lock() else { return };
+        let frame_count = output.frame_count();
+        let dev_channels = output.channels().max(1) as usize;
+
+        match output.format() {
+            Format::F32 => {
+                let out_slice = output.as_samples_mut::<f32>();
+                for f in 0..frame_count {
+                    let sample = if *head < samples_cb.len() {
+                        let s = samples_cb[*head];
+                        *head += 1;
+                        s
+                    } else {
+                        0.0
+                    };
+                    for ch in 0..dev_channels {
+                        let idx = f * dev_channels + ch;
+                        if idx < out_slice.len() {
+                            out_slice[idx] = sample;
+                        }
+                    }
+                }
+            }
+            Format::S16 => {
+                let out_slice = output.as_samples_mut::<i16>();
+                for f in 0..frame_count {
+                    let sample = if *head < samples_cb.len() {
+                        let s = samples_cb[*head];
+                        *head += 1;
+                        (s * 32767.0).clamp(-32768.0, 32767.0) as i16
+                    } else {
+                        0
+                    };
+                    for ch in 0..dev_channels {
+                        let idx = f * dev_channels + ch;
+                        if idx < out_slice.len() {
+                            out_slice[idx] = sample;
+                        }
+                    }
+                }
+            }
+            _ => {
+                // Generic byte zeroing fallback for unexpected formats
+                output.as_bytes_mut().fill(0);
             }
         }
     });
