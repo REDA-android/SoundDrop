@@ -31,6 +31,10 @@ enum Commands {
         /// Use near-ultrasonic frequency band (18 kHz - 20 kHz)
         #[arg(long, default_value_t = false)]
         ultrasonic: bool,
+
+        /// Use the 20 ms-symbol fast audible profile (less echo margin; must match on both sides)
+        #[arg(long, default_value_t = false)]
+        fast: bool,
     },
 
     /// Receive and decode a message from sound waves
@@ -46,6 +50,10 @@ enum Commands {
         /// Use near-ultrasonic frequency band (18 kHz - 20 kHz)
         #[arg(long, default_value_t = false)]
         ultrasonic: bool,
+
+        /// Use the 20 ms-symbol fast audible profile (less echo margin; must match on both sides)
+        #[arg(long, default_value_t = false)]
+        fast: bool,
     },
 
     /// List physical audio hardware devices (speakers & microphones)
@@ -192,12 +200,14 @@ fn main() {
             seq,
             wav,
             ultrasonic,
-        } => run_tx(&message, seq, wav, ultrasonic),
+            fast,
+        } => run_tx(&message, seq, wav, ultrasonic, fast),
         Commands::Rx {
             wav,
             duration,
             ultrasonic,
-        } => run_rx(wav, duration, ultrasonic),
+            fast,
+        } => run_rx(wav, duration, ultrasonic, fast),
         Commands::Bench {
             message,
             snr_db,
@@ -270,10 +280,12 @@ fn run_devices() {
     }
 }
 
-fn run_tx(message: &str, seq: u8, wav: Option<PathBuf>, ultrasonic: bool) {
+fn run_tx(message: &str, seq: u8, wav: Option<PathBuf>, ultrasonic: bool, fast: bool) {
     let payload = message.as_bytes();
     let config = if ultrasonic {
         PhyConfig::ultrasonic_stealth_48k()
+    } else if fast {
+        PhyConfig::audible_fast_48k()
     } else {
         PhyConfig::audible_robust_48k()
     };
@@ -326,9 +338,11 @@ fn run_tx(message: &str, seq: u8, wav: Option<PathBuf>, ultrasonic: bool) {
     }
 }
 
-fn run_rx(wav: Option<PathBuf>, duration: f32, ultrasonic: bool) {
+fn run_rx(wav: Option<PathBuf>, duration: f32, ultrasonic: bool, fast: bool) {
     let config = if ultrasonic {
         PhyConfig::ultrasonic_stealth_48k()
+    } else if fast {
+        PhyConfig::audible_fast_48k()
     } else {
         PhyConfig::audible_robust_48k()
     };
