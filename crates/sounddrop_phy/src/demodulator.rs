@@ -167,12 +167,23 @@ mod tests {
     }
 
     /// Measures symbol error rate over a deterministic noise sweep.
-    fn symbol_error_rate(cfg: PhyConfig, noise_amp: f32) -> f32 {
+    fn symbol_error_rate(cfg: PhyConfig, noise_amp: f32, reverb: bool) -> f32 {
+        let sr = cfg.sample_rate;
         let modulator = Modulator::new(cfg.clone());
         let demodulator = Demodulator::new(cfg);
         let syms: Vec<u8> = (0..64u32).map(|i| ((i * 7 + 3) % 16) as u8).collect();
         let mut pcm = vec![0.0f32; 2400];
         pcm.extend_from_slice(&modulator.modulate(&syms));
+        if reverb {
+            // Synthetic room impulse response: strong echoes at 3/8/15/25 ms.
+            let dry = pcm.clone();
+            for (delay_ms, gain) in [(3.0f32, 0.6f32), (8.0, 0.45), (15.0, 0.3), (25.0, 0.15)] {
+                let d = (delay_ms * 1e-3 * sr) as usize;
+                for i in d..pcm.len() {
+                    pcm[i] += gain * dry[i - d];
+                }
+            }
+        }
         let mut state: u32 = 0x1234_5678;
         for s in pcm.iter_mut() {
             state = state.wrapping_mul(1664525).wrapping_add(1013904223);
@@ -192,11 +203,23 @@ mod tests {
     #[test]
     fn test_fast_profile_ser_vs_robust() {
         for amp in [0.0f32, 1.0, 1.25, 1.5, 1.75] {
-            let robust = symbol_error_rate(PhyConfig::audible_robust_48k(), amp);
-            let fast = symbol_error_rate(PhyConfig::audible_fast_48k(), amp);
+            let robust = symbol_error_rate(PhyConfig::audible_robust_48k(), amp, false);
+            let fast = symbol_error_rate(PhyConfig::audible_fast_48k(), amp, false);
             println!("noise_amp={amp}: SER robust={robust:.4} fast={fast:.4}");
             if amp == 0.0 {
                 assert_eq!(fast, 0.0, "fast profile must be error-free on a clean channel");
+            }
+        }
+    }
+
+    #[test]
+    fn test_fast_vs_robust_under_reverb() {
+        for amp in [0.0f32, 0.3, 0.6] {
+            let robust = symbol_error_rate(PhyConfig::audible_robust_48k(), amp, true);
+            let fast = symbol_error_rate(PhyConfig::audible_fast_48k(), amp, true);
+            println!("reverb noise_amp={amp}: SER robust={robust:.4} fast={fast:.4}");
+            if amp == 0.0 {
+                assert_eq!(fast, 0.0, "fast profile must survive moderate multipath");
             }
         }
     }
