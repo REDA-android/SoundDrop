@@ -134,6 +134,13 @@ enum Commands {
         #[arg(long, default_value_t = 22.0)]
         snr_db: f32,
     },
+
+    /// Monitor continuous real-time audio input stream with live dBFS meter and clipping alert
+    Monitor {
+        /// Monitoring duration in seconds
+        #[arg(short, long, default_value_t = 5.0)]
+        duration: f32,
+    },
 }
 
 fn main() {
@@ -178,6 +185,7 @@ fn main() {
             ack_loss,
             snr_db,
         } => run_send_file(&file, &out_dir, chunk_size, data_loss, ack_loss, snr_db),
+        Commands::Monitor { duration } => run_monitor(duration),
     }
 }
 
@@ -589,5 +597,43 @@ fn run_send_file(
         }
     }
 }
+
+fn run_monitor(duration: f32) {
+    use sounddrop_audio_io::{AudioStreamConfig, ContinuousAudioCapture, PlatformAudioProfile};
+
+    println!("=== SoundDrop Real-Time Native Audio Stream Monitor ===");
+    println!("Platform Profile:     {:?}", PlatformAudioProfile::default());
+    println!("Sample Rate:          48,000 Hz");
+    println!("Channels:             1 (Mono)");
+    println!("Buffer Duration:      10 ms (Low Latency)");
+    println!("Monitoring Duration:  {:.1}s\n", duration);
+
+    let config = AudioStreamConfig::default();
+    let capture = match ContinuousAudioCapture::start(config) {
+        Ok(c) => c,
+        Err(e) => {
+            println!("  [NOTE] Live microphone capture stream unavailable in this environment: {}", e);
+            println!("  [INFO] In a headless container, physical audio device access is simulated or requires WAV loopback.");
+            return;
+        }
+    };
+
+    println!("Listening on native audio device... Press Ctrl+C to stop.");
+    println!("Live Meter: [Peak dBFS | RMS dBFS | Status]");
+
+    let start = Instant::now();
+    while start.elapsed().as_secs_f32() < duration {
+        let meter = capture.meter();
+        let clip_str = if meter.is_clipping { " [CLIPPING!]" } else { "" };
+        let bar_len = ((meter.peak_dbfs + 96.0) / 96.0 * 20.0).clamp(0.0, 20.0) as usize;
+        let bar: String = "#".repeat(bar_len) + &"-".repeat(20 - bar_len);
+
+        print!("\r[{}] Peak: {:>5.1} dBFS | RMS: {:>5.1} dBFS{}", bar, meter.peak_dbfs, meter.rms_dbfs, clip_str);
+        std::io::Write::flush(&mut std::io::stdout()).unwrap();
+        std::thread::sleep(std::time::Duration::from_millis(100));
+    }
+    println!("\nMonitoring complete.");
+}
+
 
 
