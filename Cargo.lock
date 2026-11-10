@@ -989,6 +989,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "sounddrop_ffi"
+version = "0.1.0"
+dependencies = [
+ "log",
+ "num-complex",
+ "rustfft",
+ "sounddrop_audio_io",
+ "sounddrop_core",
+ "sounddrop_crypto",
+ "sounddrop_dsp",
+ "sounddrop_file",
+ "sounddrop_link",
+ "sounddrop_phy",
+ "sounddrop_transport",
+ "tempfile",
+ "thiserror",
+]
+
+[[package]]
 name = "sounddrop_file"
 version = "0.1.0"
 dependencies = [

@@ -8,6 +8,7 @@ members = [
     "crates/sounddrop_transport",
     "crates/sounddrop_crypto",
     "crates/sounddrop_file",
+    "crates/sounddrop_ffi",
     "crates/sounddrop_cli",
 ]
 resolver = "2"
