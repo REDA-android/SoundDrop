@@ -17,6 +17,7 @@ sounddrop_audio_io = { path = "../sounddrop_audio_io" }
 sounddrop_core = { path = "../sounddrop_core" }
 sounddrop_transport = { path = "../sounddrop_transport" }
 sounddrop_crypto = { path = "../sounddrop_crypto" }
+sounddrop_file = { path = "../sounddrop_file" }
 clap = { workspace = true }
 env_logger = { workspace = true }
 log = { workspace = true }

@@ -107,6 +107,33 @@ enum Commands {
         #[arg(long, default_value_t = 20.0)]
         snr_db: f32,
     },
+
+    /// Transmit a file over an end-to-end encrypted acoustic channel with BLAKE3 rolling hashes, X25519 handshake, SAS, and ARQ
+    SendFile {
+        /// Path to the file to transmit
+        #[arg(short, long)]
+        file: PathBuf,
+
+        /// Destination directory for received file assembly
+        #[arg(short, long, default_value = "/tmp/sounddrop_received")]
+        out_dir: PathBuf,
+
+        /// Payload chunk size in bytes (e.g. 32 to 128 bytes)
+        #[arg(short, long, default_value_t = 32)]
+        chunk_size: u32,
+
+        /// Simulated data packet loss rate [0.0 - 0.5]
+        #[arg(long, default_value_t = 0.05)]
+        data_loss: f32,
+
+        /// Simulated ACK packet loss rate [0.0 - 0.5]
+        #[arg(long, default_value_t = 0.05)]
+        ack_loss: f32,
+
+        /// Channel SNR in dB
+        #[arg(long, default_value_t = 22.0)]
+        snr_db: f32,
+    },
 }
 
 fn main() {
@@ -143,6 +170,14 @@ fn main() {
             ack_loss,
             snr_db,
         } => run_send_secure(&message, data_loss, ack_loss, snr_db),
+        Commands::SendFile {
+            file,
+            out_dir,
+            chunk_size,
+            data_loss,
+            ack_loss,
+            snr_db,
+        } => run_send_file(&file, &out_dir, chunk_size, data_loss, ack_loss, snr_db),
     }
 }
 
@@ -456,4 +491,103 @@ fn run_send_secure(message: &str, data_loss: f32, ack_loss: f32, snr_db: f32) {
         }
     }
 }
+
+fn run_send_file(
+    file_path: &std::path::Path,
+    out_dir: &std::path::Path,
+    chunk_size: u32,
+    data_loss: f32,
+    ack_loss: f32,
+    snr_db: f32,
+) {
+    use sounddrop_file::{hex_encode, run_simulated_file_transfer};
+    use sounddrop_transport::{ArqConfig, SimulatedAcousticChannel};
+
+    if !file_path.exists() {
+        eprintln!("Error: Input file does not exist: {}", file_path.display());
+        std::process::exit(1);
+    }
+
+    let file_metadata = match std::fs::metadata(file_path) {
+        Ok(m) => m,
+        Err(e) => {
+            eprintln!("Error reading file metadata: {}", e);
+            std::process::exit(1);
+        }
+    };
+
+    println!("=== SoundDrop Acoustic File Transfer Session (Milestone 4) ===");
+    println!("Source File:          {}", file_path.display());
+    println!("File Size:            {} bytes", file_metadata.len());
+    println!("Target Output Dir:    {}", out_dir.display());
+    println!("Chunk Size:           {} bytes", chunk_size);
+    println!("Simulated DATA Loss:  {:.1}%", data_loss * 100.0);
+    println!("Simulated ACK Loss:   {:.1}%", ack_loss * 100.0);
+    println!("Channel SNR:          {:.1} dB", snr_db);
+
+    let cache_dir = std::env::temp_dir().join("sounddrop_assembly_cache");
+    let config = PhyConfig::audible_robust_48k();
+    let channel = SimulatedAcousticChannel::new(config.clone(), data_loss, ack_loss, snr_db);
+    let arq_config = ArqConfig {
+        max_retries: 5,
+        timeout_sec: 4.5,
+        turnaround_delay_sec: 0.1,
+    };
+
+    println!("\n[1/4] Slicing file and computing BLAKE3 rolling hashes...");
+    println!("[2/4] Negotiating Ephemeral X25519 acoustic handshake & SAS...");
+    println!("[3/4] Transmitting encrypted manifest and chunks over acoustic ARQ...");
+
+    match run_simulated_file_transfer(
+        file_path,
+        out_dir,
+        &cache_dir,
+        chunk_size,
+        config,
+        arq_config,
+        &channel,
+    ) {
+        Ok(outcome) => {
+            println!("\n========================================================");
+            println!(">>> CRYPTOGRAPHIC HANDSHAKE & SAS CONFIRMATION <<<");
+            println!("========================================================");
+            println!("SAS PIN:              {}", outcome.sas.pin);
+            println!("SAS Mnemonic:         {}", outcome.sas.words);
+            println!(
+                "SAS Verification:     {}",
+                if outcome.sas_verified {
+                    "MATCH CONFIRMED (Zero MITM Detected)"
+                } else {
+                    "MISMATCH DETECTED"
+                }
+            );
+
+            println!("\n========================================================");
+            println!(">>> FILE TRANSFER & INTEGRITY AUDIT RESULTS <<<");
+            println!("========================================================");
+            println!("Transferred File:     {}", outcome.file_name);
+            println!("Original Size:        {} bytes", outcome.file_size);
+            println!("Total Chunks:         {}", outcome.total_chunks);
+            println!("Chunks Delivered:     {}", outcome.chunks_transferred);
+            println!("BLAKE3 Root Hash:     {}", hex_encode(&outcome.root_hash));
+            println!("Final Saved Path:     {}", outcome.output_path.display());
+            println!("Total Duration:       {:.2?}", outcome.total_duration);
+            println!("Effective Bitrate:    {:.1} bps", outcome.effective_bps);
+
+            // Audit bit-exactness on disk
+            let original_bytes = std::fs::read(file_path).unwrap();
+            let received_bytes = std::fs::read(&outcome.output_path).unwrap();
+            assert_eq!(original_bytes, received_bytes);
+
+            println!("Integrity Audit:      BIT-PERFECT RECONSTRUCTION (100% MATCH)");
+            println!("Status:               TRANSFER COMPLETE & VERIFIED");
+            println!("========================================================");
+        }
+        Err(e) => {
+            eprintln!("\nFILE TRANSFER FAILED: {}", e);
+            std::process::exit(1);
+        }
+    }
+}
+
 
