@@ -54,6 +54,16 @@ impl PhyConfig {
         }
     }
 
+    /// Higher-throughput audible profile: 20 ms symbols (15 ms tone, 5 ms guard).
+    /// Doubles the raw symbol rate versus `audible_robust_48k` at the cost of
+    /// less reverberation margin; intended for quiet, near-field rooms.
+    pub fn audible_fast_48k() -> Self {
+        let mut cfg = Self::audible_robust_48k();
+        cfg.symbol_duration = 0.020;
+        cfg.chirp_duration = 0.040;
+        cfg
+    }
+
     /// Profile for 44.1 kHz sample rate.
     pub fn audible_robust_44k() -> Self {
         let mut cfg = Self::audible_robust_48k();

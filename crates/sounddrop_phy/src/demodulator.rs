@@ -165,4 +165,39 @@ mod tests {
 
         assert_eq!(result.symbols, input_symbols, "Symbols must withstand 10 dB SNR noise");
     }
+
+    /// Measures symbol error rate over a deterministic noise sweep.
+    fn symbol_error_rate(cfg: PhyConfig, noise_amp: f32) -> f32 {
+        let modulator = Modulator::new(cfg.clone());
+        let demodulator = Demodulator::new(cfg);
+        let syms: Vec<u8> = (0..64u32).map(|i| ((i * 7 + 3) % 16) as u8).collect();
+        let mut pcm = vec![0.0f32; 2400];
+        pcm.extend_from_slice(&modulator.modulate(&syms));
+        let mut state: u32 = 0x1234_5678;
+        for s in pcm.iter_mut() {
+            state = state.wrapping_mul(1664525).wrapping_add(1013904223);
+            let n = (state >> 8) as f32 / (1u32 << 24) as f32 - 0.5;
+            *s += n * 2.0 * noise_amp;
+        }
+        match demodulator.demodulate_buffer(&pcm, syms.len()) {
+            Some(r) => {
+                let errs = r.symbols.iter().zip(&syms).filter(|(a, b)| a != b).count()
+                    + syms.len().saturating_sub(r.symbols.len());
+                errs as f32 / syms.len() as f32
+            }
+            None => 1.0,
+        }
+    }
+
+    #[test]
+    fn test_fast_profile_ser_vs_robust() {
+        for amp in [0.0f32, 1.0, 1.25, 1.5, 1.75] {
+            let robust = symbol_error_rate(PhyConfig::audible_robust_48k(), amp);
+            let fast = symbol_error_rate(PhyConfig::audible_fast_48k(), amp);
+            println!("noise_amp={amp}: SER robust={robust:.4} fast={fast:.4}");
+            if amp == 0.0 {
+                assert_eq!(fast, 0.0, "fast profile must be error-free on a clean channel");
+            }
+        }
+    }
 }
