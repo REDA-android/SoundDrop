@@ -1,9 +1,11 @@
+pub mod daemon;
 pub mod dedup;
 pub mod network;
 pub mod node;
 pub mod packet;
 pub mod routing;
 
+pub use daemon::{AsyncMeshRelayDaemon, DaemonError, DaemonStats};
 pub use dedup::DeduplicationTable;
 pub use network::{
     run_diamond_relay, run_three_node_relay, MeshEvent, MeshSimulationMetrics, RelayOutcome,

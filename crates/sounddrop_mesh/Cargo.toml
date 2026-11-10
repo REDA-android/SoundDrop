@@ -15,6 +15,7 @@ crc32fast = { workspace = true }
 thiserror = { workspace = true }
 log = { workspace = true }
 getrandom = { workspace = true }
+tokio = { workspace = true }
 
 [dev-dependencies]
 tempfile = { workspace = true }
