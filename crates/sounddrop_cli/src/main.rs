@@ -376,6 +376,7 @@ fn print_reception_report(report: &ReceptionReport) {
     }
     println!("Sync Correlation:     {:.3} (Match Quality)", report.sync_correlation);
     println!("Avg SNR Margin:       {:.2}x", report.avg_symbol_snr_margin);
+    println!("Clock Drift (SFO):    {:.1} PPM (Oscillator Offset)", report.clock_drift_ppm);
     println!("Reed-Solomon Fixes:   {} symbols corrected", report.errors_corrected_by_fec);
     println!("CRC-32 Integrity:     VERIFIED (PASS)");
     println!("========================================");

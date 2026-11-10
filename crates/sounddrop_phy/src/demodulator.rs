@@ -1,7 +1,7 @@
 use crate::config::PhyConfig;
 use sounddrop_dsp::{
     find_correlation_peaks, generate_linear_chirp, matched_filter_ncc,
-    detect_mfsk_symbol, SymbolDetection,
+    detect_mfsk_symbol, SymbolDetection, SymbolTimingTracker,
 };
 
 /// Result of a physical layer demodulation.
@@ -13,6 +13,8 @@ pub struct DemodulationOutput {
     pub sync_sample_index: usize,
     /// Normalized cross-correlation score of the detected sync chirp.
     pub sync_correlation: f32,
+    /// Relative clock drift between transmitter and receiver in Parts Per Million (PPM).
+    pub clock_drift_ppm: f32,
     /// Per-symbol detection metrics (peak power, SNR margin).
     pub metrics: Vec<SymbolDetection>,
 }
@@ -84,9 +86,11 @@ impl Demodulator {
 
         let mut symbols = Vec::with_capacity(num_symbols);
         let mut metrics = Vec::with_capacity(num_symbols);
+        let mut tracker = SymbolTimingTracker::new(symbol_total);
 
         for s in 0..num_symbols {
-            let sym_start = first_symbol_start + s * symbol_total;
+            let nominal_start = first_symbol_start + s * symbol_total;
+            let sym_start = tracker.align_symbol_window(pcm_buffer, nominal_start, symbol_active);
             let sym_end = sym_start + symbol_active;
 
             if sym_end > pcm_buffer.len() {
@@ -109,6 +113,7 @@ impl Demodulator {
             symbols,
             sync_sample_index: sync_start,
             sync_correlation: sync_score,
+            clock_drift_ppm: tracker.estimated_drift_ppm(),
             metrics,
         })
     }

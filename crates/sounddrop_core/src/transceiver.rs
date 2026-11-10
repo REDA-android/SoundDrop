@@ -22,6 +22,7 @@ pub struct ReceptionReport {
     pub errors_corrected_by_fec: usize,
     pub sync_correlation: f32,
     pub avg_symbol_snr_margin: f32,
+    pub clock_drift_ppm: f32,
 }
 
 /// Top-level SoundDrop Transmitter.
@@ -123,6 +124,7 @@ impl AcousticReceiver {
             errors_corrected_by_fec: errors_fixed,
             sync_correlation: output.sync_correlation,
             avg_symbol_snr_margin: avg_snr,
+            clock_drift_ppm: output.clock_drift_ppm,
         })
     }
 

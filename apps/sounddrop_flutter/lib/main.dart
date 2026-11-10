@@ -2,6 +2,7 @@ import 'core/ffi/sounddrop_bindings.dart';
 import 'providers/acoustic_session_notifier.dart';
 import 'providers/file_transfer_notifier.dart';
 import 'screens/file_transfer_screen.dart';
+import 'screens/mesh_relay_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/transceiver_screen.dart';
 
@@ -13,6 +14,7 @@ class SoundDropApp {
 
   late final TransceiverScreenController transceiverController;
   late final FileTransferScreenController fileTransferController;
+  late final MeshRelayScreenController meshRelayController;
   late final SettingsScreenController settingsController;
 
   SoundDropApp([SoundDropBindings? customBindings])
@@ -22,6 +24,7 @@ class SoundDropApp {
 
     transceiverController = TransceiverScreenController(sessionNotifier);
     fileTransferController = FileTransferScreenController(fileNotifier);
+    meshRelayController = MeshRelayScreenController(bindings);
     settingsController = SettingsScreenController();
   }
 
@@ -45,6 +48,8 @@ void main() {
   print('Acoustic PHY Status:        ${app.transceiverController.badge.displayText}');
   // ignore: avoid_print
   print('File Transfer Status:       ${app.fileTransferController.badge.displayText}');
+  // ignore: avoid_print
+  print('Mesh Relay Station Status:  ${app.meshRelayController.badge.displayText}');
   // ignore: avoid_print
   print('========================================================');
 }
