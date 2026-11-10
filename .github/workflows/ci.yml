@@ -71,13 +71,19 @@ jobs:
       - name: Build SoundDrop FFI Shared Library
         run: cargo build --release -p sounddrop_ffi
 
-      - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@v1
+      - name: Setup Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
 
-      - name: Dart Analyze
+      - name: Flutter Pub Get
         working-directory: apps/sounddrop_flutter
-        run: dart analyze
+        run: flutter pub get
 
-      - name: Run Dart Tests
+      - name: Flutter Analyze
         working-directory: apps/sounddrop_flutter
-        run: dart test
+        run: flutter analyze
+
+      - name: Flutter Tests
+        working-directory: apps/sounddrop_flutter
+        run: flutter test

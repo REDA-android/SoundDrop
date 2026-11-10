@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:sounddrop_flutter/core/ffi/sounddrop_bindings.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('SoundDrop Native Rust FFI Bindings Tests', () {

@@ -1,6 +1,6 @@
 import 'package:sounddrop_flutter/core/ffi/sounddrop_bindings.dart';
 import 'package:sounddrop_flutter/screens/mesh_relay_screen.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('MeshRelayScreenController Tests', () {

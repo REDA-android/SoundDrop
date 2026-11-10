@@ -79,6 +79,93 @@ pub unsafe extern "C" fn sounddrop_ffi_encode_message(
     }
 }
 
+/// Maps a profile id to a PHY configuration: 0 = audible robust, 1 = ultrasonic, 2 = audible fast.
+fn profile_config(profile: u8) -> Option<PhyConfig> {
+    match profile {
+        0 => Some(PhyConfig::audible_robust_48k()),
+        1 => Some(PhyConfig::ultrasonic_stealth_48k()),
+        2 => Some(PhyConfig::audible_fast_48k()),
+        _ => None,
+    }
+}
+
+/// Transmits a UTF-8 message through the physical speaker (blocking until playback ends).
+/// Returns 0 on success, negative on error (see `sounddrop_ffi_get_last_error`).
+#[no_mangle]
+pub unsafe extern "C" fn sounddrop_ffi_transmit_airgap(
+    message: *const c_char,
+    seq_num: u8,
+    profile: u8,
+) -> i32 {
+    if message.is_null() {
+        set_error("Null message pointer");
+        return -1;
+    }
+    let bytes = match CStr::from_ptr(message).to_str() {
+        Ok(s) => s.as_bytes(),
+        Err(e) => {
+            set_error(&format!("Invalid UTF-8 message: {}", e));
+            return -2;
+        }
+    };
+    let Some(cfg) = profile_config(profile) else {
+        set_error("Unknown profile id");
+        return -3;
+    };
+    match AcousticTransmitter::new(cfg).transmit_airgap(bytes, seq_num) {
+        Ok(()) => 0,
+        Err(e) => {
+            set_error(&format!("Speaker transmission failed: {}", e));
+            -4
+        }
+    }
+}
+
+/// Records from the physical microphone for `duration_sec` seconds (blocking) and decodes a frame.
+/// Returns 0 on success (payload copied NUL-terminated into `out_buf`), negative on error.
+#[no_mangle]
+pub unsafe extern "C" fn sounddrop_ffi_receive_airgap(
+    duration_sec: c_float,
+    profile: u8,
+    out_buf: *mut c_char,
+    max_buf_len: u32,
+    out_snr: *mut c_float,
+    out_corr: *mut c_float,
+    out_fec_corrected: *mut u32,
+) -> i32 {
+    if out_buf.is_null() || max_buf_len == 0 || !(duration_sec > 0.0) {
+        set_error("Invalid arguments to receive_airgap");
+        return -1;
+    }
+    let Some(cfg) = profile_config(profile) else {
+        set_error("Unknown profile id");
+        return -3;
+    };
+    match AcousticReceiver::new(cfg).receive_airgap(duration_sec) {
+        Ok(report) => {
+            let payload = report.frame.payload;
+            let n = std::cmp::min(payload.len(), (max_buf_len - 1) as usize);
+            let out = std::slice::from_raw_parts_mut(out_buf as *mut u8, max_buf_len as usize);
+            out[..n].copy_from_slice(&payload[..n]);
+            out[n] = 0;
+            if !out_snr.is_null() {
+                *out_snr = report.avg_symbol_snr_margin;
+            }
+            if !out_corr.is_null() {
+                *out_corr = report.sync_correlation;
+            }
+            if !out_fec_corrected.is_null() {
+                *out_fec_corrected = report.errors_corrected_by_fec as u32;
+            }
+            0
+        }
+        Err(e) => {
+            set_error(&format!("Microphone reception failed: {}", e));
+            -4
+        }
+    }
+}
+
 /// Frees audio PCM buffer allocated by `sounddrop_ffi_encode_message`.
 #[no_mangle]
 pub unsafe extern "C" fn sounddrop_ffi_free_pcm(pcm: *mut c_float, len: u32) {

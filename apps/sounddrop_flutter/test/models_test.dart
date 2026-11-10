@@ -4,7 +4,7 @@ import 'package:sounddrop_flutter/screens/settings_screen.dart';
 import 'package:sounddrop_flutter/widgets/audio_level_meter.dart';
 import 'package:sounddrop_flutter/widgets/honest_badge.dart';
 import 'package:sounddrop_flutter/widgets/waterfall_display.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('SoundDrop Models & Honest UI Widgets Tests', () {

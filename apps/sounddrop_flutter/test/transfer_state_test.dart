@@ -1,5 +1,5 @@
 import 'package:sounddrop_flutter/models/transfer_state.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('TransferState Tests', () {

@@ -132,6 +132,39 @@ typedef RunDiamondRelayDart = Pointer<Utf8> Function(
     int dstId,
     Pointer<Utf8> message);
 
+typedef TransmitAirgapNative = Int32 Function(Pointer<Utf8> message, Uint8 seqNum, Uint8 profile);
+typedef TransmitAirgapDart = int Function(Pointer<Utf8> message, int seqNum, int profile);
+
+typedef ReceiveAirgapNative = Int32 Function(
+    Float durationSec,
+    Uint8 profile,
+    Pointer<Utf8> outBuf,
+    Uint32 maxBufLen,
+    Pointer<Float> outSnr,
+    Pointer<Float> outCorr,
+    Pointer<Uint32> outFecCorrected);
+typedef ReceiveAirgapDart = int Function(
+    double durationSec,
+    int profile,
+    Pointer<Utf8> outBuf,
+    int maxBufLen,
+    Pointer<Float> outSnr,
+    Pointer<Float> outCorr,
+    Pointer<Uint32> outFecCorrected);
+
+typedef GetLastErrorNative = Pointer<Utf8> Function();
+
+/// Acoustic PHY profile. `id` matches the native `profile` argument.
+enum AcousticProfile {
+  robust(0, 'Audible robust (40 ms symbols)'),
+  ultrasonic(1, 'Near-ultrasonic (18-20 kHz)'),
+  fast(2, 'Audible fast (20 ms symbols)');
+
+  final int id;
+  final String label;
+  const AcousticProfile(this.id, this.label);
+}
+
 typedef FreeStringNative = Void Function(Pointer<Utf8> ptr);
 typedef FreeStringDart = void Function(Pointer<Utf8> ptr);
 
@@ -151,6 +184,9 @@ class SoundDropBindings {
   late final RunMeshRelayDart _runMeshRelay;
   late final RunDiamondRelayDart _runDiamondRelay;
   late final FreeStringDart _freeString;
+  late final TransmitAirgapDart _transmitAirgap;
+  late final ReceiveAirgapDart _receiveAirgap;
+  late final VersionFunc _lastError;
 
   SoundDropBindings([DynamicLibrary? customLib]) {
     _lib = customLib ?? _openLibrary();
@@ -167,6 +203,9 @@ class SoundDropBindings {
     _runMeshRelay = _lib.lookupFunction<RunMeshRelayNative, RunMeshRelayDart>('sounddrop_ffi_run_mesh_relay');
     _runDiamondRelay = _lib.lookupFunction<RunDiamondRelayNative, RunDiamondRelayDart>('sounddrop_ffi_run_diamond_relay');
     _freeString = _lib.lookupFunction<FreeStringNative, FreeStringDart>('sounddrop_ffi_free_string');
+    _transmitAirgap = _lib.lookupFunction<TransmitAirgapNative, TransmitAirgapDart>('sounddrop_ffi_transmit_airgap');
+    _receiveAirgap = _lib.lookupFunction<ReceiveAirgapNative, ReceiveAirgapDart>('sounddrop_ffi_receive_airgap');
+    _lastError = _lib.lookupFunction<GetLastErrorNative, VersionFunc>('sounddrop_ffi_get_last_error');
   }
 
   static DynamicLibrary _openLibrary() {
@@ -274,6 +313,49 @@ class SoundDropBindings {
       );
     } finally {
       calloc.free(pcmPtr);
+      calloc.free(outBuf);
+      calloc.free(outSnr);
+      calloc.free(outCorr);
+      calloc.free(outFec);
+    }
+  }
+
+  String _takeLastError() {
+    final ptr = _lastError();
+    final msg = ptr.toDartString();
+    _freeString(ptr);
+    return msg;
+  }
+
+  /// Plays a message through the physical speaker. BLOCKS until playback ends:
+  /// call from a background isolate. Throws [StateError] with the native error text.
+  void transmitAirgap(String message, {int seqNum = 0, AcousticProfile profile = AcousticProfile.robust}) {
+    final msgPtr = message.toNativeUtf8();
+    try {
+      final res = _transmitAirgap(msgPtr, seqNum, profile.id);
+      if (res != 0) throw StateError(_takeLastError());
+    } finally {
+      calloc.free(msgPtr);
+    }
+  }
+
+  /// Records from the physical microphone and decodes one frame. BLOCKS for
+  /// [durationSec]: call from a background isolate. Throws [StateError] if no frame is decoded.
+  DecodeResult receiveAirgap({double durationSec = 8.0, AcousticProfile profile = AcousticProfile.robust}) {
+    final outBuf = calloc<Uint8>(512).cast<Utf8>();
+    final outSnr = calloc<Float>();
+    final outCorr = calloc<Float>();
+    final outFec = calloc<Uint32>();
+    try {
+      final res = _receiveAirgap(durationSec, profile.id, outBuf, 512, outSnr, outCorr, outFec);
+      if (res != 0) throw StateError(_takeLastError());
+      return DecodeResult(
+        message: outBuf.toDartString(),
+        snrMargin: outSnr.value,
+        correlation: outCorr.value,
+        fecErrorsCorrected: outFec.value,
+      );
+    } finally {
       calloc.free(outBuf);
       calloc.free(outSnr);
       calloc.free(outCorr);
