@@ -95,6 +95,19 @@ typedef RunFileTransferDart = Pointer<Utf8> Function(
     double ackLoss,
     double snrDb);
 
+typedef RunHybridTransferNative = Pointer<Utf8> Function(
+    Pointer<Utf8> filepath,
+    Pointer<Utf8> outDir,
+    Pointer<Utf8> cacheDir,
+    Uint32 chunkSize,
+    Uint8 simulatedWifiBlocked);
+typedef RunHybridTransferDart = Pointer<Utf8> Function(
+    Pointer<Utf8> filepath,
+    Pointer<Utf8> outDir,
+    Pointer<Utf8> cacheDir,
+    int chunkSize,
+    int simulatedWifiBlocked);
+
 typedef FreeStringNative = Void Function(Pointer<Utf8> ptr);
 typedef FreeStringDart = void Function(Pointer<Utf8> ptr);
 
@@ -110,6 +123,7 @@ class SoundDropBindings {
   late final ComputeMeterDart _computeMeter;
   late final GenerateSasDart _generateSas;
   late final RunFileTransferDart _runFileTransfer;
+  late final RunHybridTransferDart _runHybridTransfer;
   late final FreeStringDart _freeString;
 
   SoundDropBindings([DynamicLibrary? customLib]) {
@@ -123,6 +137,7 @@ class SoundDropBindings {
     _computeMeter = _lib.lookupFunction<ComputeMeterNative, ComputeMeterDart>('sounddrop_ffi_compute_meter');
     _generateSas = _lib.lookupFunction<GenerateSasNative, GenerateSasDart>('sounddrop_ffi_generate_sas');
     _runFileTransfer = _lib.lookupFunction<RunFileTransferNative, RunFileTransferDart>('sounddrop_ffi_run_file_transfer');
+    _runHybridTransfer = _lib.lookupFunction<RunHybridTransferNative, RunHybridTransferDart>('sounddrop_ffi_run_hybrid_transfer');
     _freeString = _lib.lookupFunction<FreeStringNative, FreeStringDart>('sounddrop_ffi_free_string');
   }
 
@@ -360,6 +375,41 @@ class SoundDropBindings {
 
       if (jsonPtr.address == 0) {
         throw StateError('Null response from file transfer execution');
+      }
+
+      final jsonStr = jsonPtr.toDartString();
+      _freeString(jsonPtr);
+      return jsonStr;
+    } finally {
+      calloc.free(filePtr);
+      calloc.free(outDirPtr);
+      calloc.free(cacheDirPtr);
+    }
+  }
+
+  /// Executes Milestone 7 hybrid acoustic bootstrap -> Wi-Fi transfer session.
+  String runHybridTransfer({
+    required String filepath,
+    required String outDir,
+    required String cacheDir,
+    int chunkSize = 64,
+    bool simulatedWifiBlocked = false,
+  }) {
+    final filePtr = filepath.toNativeUtf8();
+    final outDirPtr = outDir.toNativeUtf8();
+    final cacheDirPtr = cacheDir.toNativeUtf8();
+
+    try {
+      final jsonPtr = _runHybridTransfer(
+        filePtr,
+        outDirPtr,
+        cacheDirPtr,
+        chunkSize,
+        simulatedWifiBlocked ? 1 : 0,
+      );
+
+      if (jsonPtr.address == 0) {
+        throw StateError('Null response from hybrid transfer execution');
       }
 
       final jsonStr = jsonPtr.toDartString();

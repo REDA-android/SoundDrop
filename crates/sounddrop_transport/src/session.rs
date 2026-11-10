@@ -196,7 +196,7 @@ mod tests {
         let channel = SimulatedAcousticChannel::new(config.clone(), 0.0, 0.0, 25.0);
         let arq_cfg = ArqConfig::default();
 
-        let test_message = b"SoundDrop Milestone 2: Multi-frame ARQ data link proven across acoustic physical layers!";
+        let test_message = b"SoundDrop Milestone 2: Multi-frame ARQ data link proven across acoustic physical layers with automatic segmentation and reassembly!";
         let (restored, metrics) = run_simulated_arq_transfer(test_message, config, arq_cfg, &channel)
             .expect("Transfer failed");
 

@@ -1,0 +1,20 @@
+[package]
+name = "sounddrop_hybrid"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+sounddrop_crypto = { path = "../sounddrop_crypto" }
+sounddrop_transport = { path = "../sounddrop_transport" }
+sounddrop_file = { path = "../sounddrop_file" }
+sounddrop_link = { path = "../sounddrop_link" }
+sounddrop_phy = { path = "../sounddrop_phy" }
+blake3 = { workspace = true }
+crc32fast = { workspace = true }
+thiserror = { workspace = true }
+log = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }

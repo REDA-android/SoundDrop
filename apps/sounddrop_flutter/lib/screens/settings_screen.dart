@@ -67,9 +67,9 @@ class SettingsScreenController {
         FeatureAuditEntry(
           title: 'Hybrid Wi-Fi Transport Handover',
           milestone: 'Milestone 7',
-          cratePath: 'TBD',
-          status: ImplementationStatus.notImplemented,
-          description: 'Acoustic connection bootstrap negotiating local high-speed Wi-Fi / direct socket payload handover.',
+          cratePath: 'crates/sounddrop_hybrid',
+          status: ImplementationStatus.compiledAndTested,
+          description: 'Acoustic connection bootstrap negotiating local high-speed Wi-Fi / direct socket payload handover with seamless acoustic fallback.',
         ),
         FeatureAuditEntry(
           title: 'Multi-Hop Acoustic Mesh Relay',

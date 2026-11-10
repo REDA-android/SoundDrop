@@ -106,5 +106,63 @@ void main() {
         tempDir.deleteSync(recursive: true);
       }
     });
+
+    test('Milestone 7: Hybrid transfer over Direct Wi-Fi succeeds with SAS verification', () {
+      final tempDir = Directory.systemTemp.createTempSync('sounddrop_hybrid_wifi_test_');
+      final inputFile = File('${tempDir.path}/wifi_data.bin');
+      inputFile.writeAsBytesSync(List.generate(1024, (i) => (i * 7) & 0xFF));
+
+      final outputDir = Directory('${tempDir.path}/out')..createSync();
+      final cacheDir = Directory('${tempDir.path}/cache')..createSync();
+
+      try {
+        final jsonResult = bindings.runHybridTransfer(
+          filepath: inputFile.path,
+          outDir: outputDir.path,
+          cacheDir: cacheDir.path,
+          chunkSize: 64,
+          simulatedWifiBlocked: false,
+        );
+
+        expect(jsonResult, contains('"status":"ok"'));
+        expect(jsonResult, contains('"transportMode":"DirectWifi"'));
+        expect(jsonResult, contains('"sasVerified":true'));
+
+        final deliveredFile = File('${outputDir.path}/wifi_data.bin');
+        expect(deliveredFile.existsSync(), isTrue);
+        expect(deliveredFile.readAsBytesSync(), equals(inputFile.readAsBytesSync()));
+      } finally {
+        tempDir.deleteSync(recursive: true);
+      }
+    });
+
+    test('Milestone 7: Hybrid transfer falls back cleanly to acoustic ARQ when Wi-Fi blocked', () {
+      final tempDir = Directory.systemTemp.createTempSync('sounddrop_hybrid_fallback_test_');
+      final inputFile = File('${tempDir.path}/fallback_data.txt');
+      inputFile.writeAsStringSync('SoundDrop Milestone 7: Acoustic Fallback verified via Flutter FFI!');
+
+      final outputDir = Directory('${tempDir.path}/out')..createSync();
+      final cacheDir = Directory('${tempDir.path}/cache')..createSync();
+
+      try {
+        final jsonResult = bindings.runHybridTransfer(
+          filepath: inputFile.path,
+          outDir: outputDir.path,
+          cacheDir: cacheDir.path,
+          chunkSize: 32,
+          simulatedWifiBlocked: true,
+        );
+
+        expect(jsonResult, contains('"status":"ok"'));
+        expect(jsonResult, contains('"transportMode":"AcousticFallback"'));
+        expect(jsonResult, contains('"sasVerified":true'));
+
+        final deliveredFile = File('${outputDir.path}/fallback_data.txt');
+        expect(deliveredFile.existsSync(), isTrue);
+        expect(deliveredFile.readAsStringSync(), equals(inputFile.readAsStringSync()));
+      } finally {
+        tempDir.deleteSync(recursive: true);
+      }
+    });
   });
 }

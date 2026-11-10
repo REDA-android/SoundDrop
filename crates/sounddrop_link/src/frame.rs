@@ -4,7 +4,7 @@ use crate::reed_solomon::{ReedSolomonCodec, ReedSolomonError};
 
 pub const FRAME_MAGIC: u8 = 0x53; // 'S'
 pub const PROTOCOL_VERSION: u8 = 0x01;
-pub const MAX_PAYLOAD_LEN: usize = 32;
+pub const MAX_PAYLOAD_LEN: usize = 48;
 pub const DEFAULT_PARITY_LEN: usize = 8;
 pub const DEFAULT_INTERLEAVE_DEPTH: usize = 4;
 
@@ -30,6 +30,7 @@ pub enum FrameType {
     DataEnd = 0x04,
     HandshakeInit = 0x05,
     HandshakeResp = 0x06,
+    WifiBootstrap = 0x07,
 }
 
 impl TryFrom<u8> for FrameType {
@@ -42,6 +43,7 @@ impl TryFrom<u8> for FrameType {
             0x04 => Ok(FrameType::DataEnd),
             0x05 => Ok(FrameType::HandshakeInit),
             0x06 => Ok(FrameType::HandshakeResp),
+            0x07 => Ok(FrameType::WifiBootstrap),
             other => Err(FrameError::InvalidFrameType(other)),
         }
     }

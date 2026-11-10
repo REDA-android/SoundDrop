@@ -141,6 +141,25 @@ enum Commands {
         #[arg(short, long, default_value_t = 5.0)]
         duration: f32,
     },
+
+    /// Run Milestone 7: Acoustic Bootstrap -> Local Wi-Fi Handover with Seamless Acoustic Fallback
+    SendHybrid {
+        /// Path to the file to transmit
+        #[arg(short, long)]
+        file: PathBuf,
+
+        /// Destination directory for received file assembly
+        #[arg(short, long, default_value = "/tmp/sounddrop_hybrid_rx")]
+        out_dir: PathBuf,
+
+        /// Payload chunk size in bytes
+        #[arg(short, long, default_value_t = 64)]
+        chunk_size: u32,
+
+        /// Force simulation of firewalled/blocked Wi-Fi to demonstrate automatic acoustic fallback
+        #[arg(long, default_value_t = false)]
+        block_wifi: bool,
+    },
 }
 
 fn main() {
@@ -185,6 +204,12 @@ fn main() {
             ack_loss,
             snr_db,
         } => run_send_file(&file, &out_dir, chunk_size, data_loss, ack_loss, snr_db),
+        Commands::SendHybrid {
+            file,
+            out_dir,
+            chunk_size,
+            block_wifi,
+        } => run_send_hybrid(&file, &out_dir, chunk_size, block_wifi),
         Commands::Monitor { duration } => run_monitor(duration),
     }
 }
@@ -633,6 +658,125 @@ fn run_monitor(duration: f32) {
         std::thread::sleep(std::time::Duration::from_millis(100));
     }
     println!("\nMonitoring complete.");
+}
+
+fn run_send_hybrid(
+    file_path: &std::path::Path,
+    out_dir: &std::path::Path,
+    chunk_size: u32,
+    block_wifi: bool,
+) {
+    use sounddrop_file::hex_encode;
+    use sounddrop_hybrid::{run_hybrid_transfer, TransportMode};
+    use sounddrop_transport::{ArqConfig, SimulatedAcousticChannel};
+
+    if !file_path.exists() {
+        eprintln!("Error: Input file does not exist: {}", file_path.display());
+        std::process::exit(1);
+    }
+
+    let file_metadata = match std::fs::metadata(file_path) {
+        Ok(m) => m,
+        Err(e) => {
+            eprintln!("Error reading file metadata: {}", e);
+            std::process::exit(1);
+        }
+    };
+
+    println!("=== SoundDrop Hybrid Transport Session (Milestone 7) ===");
+    println!("Source File:          {}", file_path.display());
+    println!("File Size:            {} bytes", file_metadata.len());
+    println!("Target Output Dir:    {}", out_dir.display());
+    println!("Chunk Size:           {} bytes", chunk_size);
+    println!(
+        "Simulated Wi-Fi Mode: {}",
+        if block_wifi {
+            "BLOCKED (Testing Automatic Acoustic Fallback)"
+        } else {
+            "NORMAL (High-Speed Local Wi-Fi Handover)"
+        }
+    );
+
+    let cache_dir = std::env::temp_dir().join("sounddrop_hybrid_cache");
+    let phy_config = PhyConfig::audible_robust_48k();
+    let channel = SimulatedAcousticChannel::new(phy_config.clone(), 0.05, 0.05, 20.0);
+    let arq_config = ArqConfig {
+        max_retries: 5,
+        timeout_sec: 4.5,
+        turnaround_delay_sec: 0.1,
+    };
+
+    println!("\n[1/3] Negotiating Ephemeral X25519 acoustic handshake & SAS...");
+    println!("[2/3] Acoustic bootstrap: Advertising endpoint & mutual auth token...");
+    println!("[3/3] Attempting high-speed Wi-Fi stream with fallback...");
+
+    match run_hybrid_transfer(
+        file_path,
+        out_dir,
+        &cache_dir,
+        chunk_size,
+        phy_config,
+        arq_config,
+        &channel,
+        block_wifi,
+    ) {
+        Ok(outcome) => {
+            println!("\n========================================================");
+            println!(">>> CRYPTOGRAPHIC HANDSHAKE & SAS CONFIRMATION <<<");
+            println!("========================================================");
+            println!("SAS PIN:              {}", outcome.sas.pin);
+            println!("SAS Mnemonic:         {}", outcome.sas.words);
+            println!(
+                "SAS Verification:     {}",
+                if outcome.sas_verified {
+                    "MATCH CONFIRMED (Zero MITM Detected)"
+                } else {
+                    "MISMATCH DETECTED"
+                }
+            );
+
+            println!("\n========================================================");
+            println!(">>> HYBRID TRANSPORT EXECUTION AUDIT <<<");
+            println!("========================================================");
+            println!("Transferred File:     {}", outcome.file_name);
+            println!("Original Size:        {} bytes", outcome.file_size);
+            println!("Total Chunks:         {}", outcome.total_chunks);
+            println!(
+                "Transport Mode:       {}",
+                match outcome.transport_mode {
+                    TransportMode::DirectWifi => "DIRECT WI-FI (High-Speed TCP Socket Handover)",
+                    TransportMode::AcousticFallback => {
+                        "ACOUSTIC FALLBACK (Automatic ARQ Sound Wave Transfer)"
+                    }
+                    TransportMode::HybridHandover => "HYBRID HANDOVER (Multi-transport Interleaved)",
+                }
+            );
+            println!("BLAKE3 Root Hash:     {}", hex_encode(&outcome.root_hash));
+            println!("Final Saved Path:     {}", outcome.output_path.display());
+            println!("Session Duration:     {:.2?}", outcome.duration);
+            println!(
+                "Effective Bitrate:    {:.1} bps ({:.2} KB/s)",
+                outcome.effective_bps,
+                outcome.effective_bps / 8000.0
+            );
+
+            // Audit bit-exactness on disk
+            let original_bytes = std::fs::read(file_path).unwrap();
+            let received_bytes = std::fs::read(&outcome.output_path).unwrap();
+            assert_eq!(
+                original_bytes, received_bytes,
+                "Received file must bit-identically match original!"
+            );
+
+            println!("Integrity Audit:      BIT-PERFECT RECONSTRUCTION (100% MATCH)");
+            println!("Status:               TRANSFER COMPLETE & VERIFIED");
+            println!("========================================================");
+        }
+        Err(e) => {
+            eprintln!("\nHYBRID TRANSFER FAILED: {}", e);
+            std::process::exit(1);
+        }
+    }
 }
 
 

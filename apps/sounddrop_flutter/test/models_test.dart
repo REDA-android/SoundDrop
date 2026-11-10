@@ -70,7 +70,8 @@ void main() {
       final audit = controller.systemFeatureAudit;
 
       final wifiHandover = audit.firstWhere((e) => e.title.contains('Wi-Fi Transport Handover'));
-      expect(wifiHandover.status, equals(ImplementationStatus.notImplemented));
+      expect(wifiHandover.status, equals(ImplementationStatus.compiledAndTested));
+      expect(wifiHandover.cratePath, equals('crates/sounddrop_hybrid'));
 
       final meshRelay = audit.firstWhere((e) => e.title.contains('Mesh Relay'));
       expect(meshRelay.status, equals(ImplementationStatus.notImplemented));

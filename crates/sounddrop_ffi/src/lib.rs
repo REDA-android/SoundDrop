@@ -393,6 +393,77 @@ pub unsafe extern "C" fn sounddrop_ffi_run_file_transfer(
     }
 }
 
+/// Executes a hybrid acoustic-bootstrap to Wi-Fi file transfer session.
+/// Returns JSON-formatted execution outcome string with `transportMode` ("DirectWifi" or "AcousticFallback").
+/// Must be freed with `sounddrop_ffi_free_string`.
+#[no_mangle]
+pub unsafe extern "C" fn sounddrop_ffi_run_hybrid_transfer(
+    filepath: *const c_char,
+    out_dir: *const c_char,
+    cache_dir: *const c_char,
+    chunk_size: u32,
+    simulated_wifi_blocked: u8,
+) -> *mut c_char {
+    if filepath.is_null() || out_dir.is_null() || cache_dir.is_null() {
+        return std::ptr::null_mut();
+    }
+
+    let file_p = match CStr::from_ptr(filepath).to_str() {
+        Ok(s) => Path::new(s),
+        Err(_) => return std::ptr::null_mut(),
+    };
+    let out_p = match CStr::from_ptr(out_dir).to_str() {
+        Ok(s) => Path::new(s),
+        Err(_) => return std::ptr::null_mut(),
+    };
+    let cache_p = match CStr::from_ptr(cache_dir).to_str() {
+        Ok(s) => Path::new(s),
+        Err(_) => return std::ptr::null_mut(),
+    };
+
+    let config = PhyConfig::audible_robust_48k();
+    let channel = SimulatedAcousticChannel::new(config.clone(), 0.0, 0.0, 30.0);
+    let arq_cfg = ArqConfig::default();
+
+    match sounddrop_hybrid::run_hybrid_transfer(
+        file_p,
+        out_p,
+        cache_p,
+        chunk_size,
+        config,
+        arq_cfg,
+        &channel,
+        simulated_wifi_blocked != 0,
+    ) {
+        Ok(outcome) => {
+            let mode_str = match outcome.transport_mode {
+                sounddrop_hybrid::TransportMode::DirectWifi => "DirectWifi",
+                sounddrop_hybrid::TransportMode::AcousticFallback => "AcousticFallback",
+                sounddrop_hybrid::TransportMode::HybridHandover => "HybridHandover",
+            };
+            let json = format!(
+                r#"{{"status":"ok","fileName":"{}","fileSize":{},"totalChunks":{},"rootHash":"{}","outputPath":"{}","sasPin":"{}","sasWords":"{}","sasVerified":{},"transportMode":"{}","durationMs":{},"effectiveBps":{:.1}}}"#,
+                outcome.file_name,
+                outcome.file_size,
+                outcome.total_chunks,
+                hex_encode(&outcome.root_hash),
+                outcome.output_path.display(),
+                outcome.sas.pin,
+                outcome.sas.words,
+                outcome.sas_verified,
+                mode_str,
+                outcome.duration.as_millis(),
+                outcome.effective_bps
+            );
+            CString::new(json).unwrap_or_default().into_raw()
+        }
+        Err(e) => {
+            let json = format!(r#"{{"status":"error","message":"{}"}}"#, e);
+            CString::new(json).unwrap_or_default().into_raw()
+        }
+    }
+}
+
 /// Frees a C-string returned by Rust FFI.
 #[no_mangle]
 pub unsafe extern "C" fn sounddrop_ffi_free_string(ptr: *mut c_char) {

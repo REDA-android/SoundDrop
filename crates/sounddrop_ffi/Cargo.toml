@@ -18,6 +18,7 @@ sounddrop_core = { path = "../sounddrop_core" }
 sounddrop_transport = { path = "../sounddrop_transport" }
 sounddrop_crypto = { path = "../sounddrop_crypto" }
 sounddrop_file = { path = "../sounddrop_file" }
+sounddrop_hybrid = { path = "../sounddrop_hybrid" }
 rustfft = { workspace = true }
 num-complex = { workspace = true }
 log = { workspace = true }
