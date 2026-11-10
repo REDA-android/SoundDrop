@@ -1,0 +1,30 @@
+[workspace]
+members = [
+    "crates/sounddrop_dsp",
+    "crates/sounddrop_phy",
+    "crates/sounddrop_link",
+    "crates/sounddrop_audio_io",
+    "crates/sounddrop_core",
+    "crates/sounddrop_cli",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["SoundDrop Engineering Team"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/REDA-android/SoundDrop"
+
+[workspace.dependencies]
+hound = "3.5.1"
+miniaudio = "0.10.0"
+rustfft = "6.4.1"
+reed-solomon-erasure = "6.0.0"
+crc32fast = "1.5.4"
+ringbuf = "0.6.0"
+clap = { version = "4.6.7", features = ["derive"] }
+thiserror = "2.0.21"
+log = "0.4.35"
+env_logger = "0.11.6"
+num-complex = "0.4.6"

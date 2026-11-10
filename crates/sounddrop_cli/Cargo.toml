@@ -1,0 +1,20 @@
+[package]
+name = "sounddrop_cli"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "sounddrop"
+path = "src/main.rs"
+
+[dependencies]
+sounddrop_dsp = { path = "../sounddrop_dsp" }
+sounddrop_phy = { path = "../sounddrop_phy" }
+sounddrop_link = { path = "../sounddrop_link" }
+sounddrop_audio_io = { path = "../sounddrop_audio_io" }
+sounddrop_core = { path = "../sounddrop_core" }
+clap = { workspace = true }
+env_logger = { workspace = true }
+log = { workspace = true }

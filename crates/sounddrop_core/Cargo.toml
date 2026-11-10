@@ -1,0 +1,14 @@
+[package]
+name = "sounddrop_core"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+sounddrop_dsp = { path = "../sounddrop_dsp" }
+sounddrop_phy = { path = "../sounddrop_phy" }
+sounddrop_link = { path = "../sounddrop_link" }
+sounddrop_audio_io = { path = "../sounddrop_audio_io" }
+thiserror = { workspace = true }
+log = { workspace = true }

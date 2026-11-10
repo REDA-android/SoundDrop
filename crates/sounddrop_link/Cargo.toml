@@ -1,0 +1,13 @@
+[package]
+name = "sounddrop_link"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+sounddrop_phy = { path = "../sounddrop_phy" }
+reed-solomon-erasure = { workspace = true }
+crc32fast = { workspace = true }
+thiserror = { workspace = true }
+log = { workspace = true }

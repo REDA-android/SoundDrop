@@ -1,0 +1,13 @@
+[package]
+name = "sounddrop_audio_io"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+hound = { workspace = true }
+miniaudio = { workspace = true }
+ringbuf = { workspace = true }
+thiserror = { workspace = true }
+log = { workspace = true }

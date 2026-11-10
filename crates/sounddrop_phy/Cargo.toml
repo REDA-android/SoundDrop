@@ -1,0 +1,11 @@
+[package]
+name = "sounddrop_phy"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+sounddrop_dsp = { path = "../sounddrop_dsp" }
+thiserror = { workspace = true }
+log = { workspace = true }

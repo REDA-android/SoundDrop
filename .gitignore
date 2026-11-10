@@ -1,0 +1,17 @@
+# Rust build artifacts
+target/
+**/*.rs.bk
+*.pdb
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# Audio test captures
+*.wav
+/tmp/
+
+# IDE files
+.vscode/
+.idea/
+*.iml
