@@ -24,7 +24,7 @@ repository = "https://github.com/REDA-android/SoundDrop"
 
 [workspace.dependencies]
 hound = "3.5.1"
-miniaudio = "0.10.0"
+miniaudio = { package = "om-fork-miniaudio", version = "0.12.2", default-features = false, features = ["ma-log-level-error"] }
 rustfft = "6.4.1"
 reed-solomon-erasure = "6.0.0"
 crc32fast = "1.5.4"
