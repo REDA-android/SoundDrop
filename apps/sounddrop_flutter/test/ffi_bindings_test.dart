@@ -164,5 +164,35 @@ void main() {
         tempDir.deleteSync(recursive: true);
       }
     });
+
+    test('Milestone 8: 3-Node acoustic mesh relay forwards message across air gap', () {
+      const msg = 'Mesh A->R->B Verified!';
+      final jsonResult = bindings.runMeshRelay(
+        srcId: 0x0001,
+        relayId: 0x0002,
+        dstId: 0x0003,
+        message: msg,
+      );
+
+      expect(jsonResult, contains('"status":"ok"'));
+      expect(jsonResult, contains('"message":"$msg"'));
+      expect(jsonResult, contains('"hopsTaken":1'));
+      expect(jsonResult, contains('"verified":true'));
+    });
+
+    test('Milestone 8: Diamond topology relay suppresses duplicate echoes', () {
+      const msg = 'Diamond Deduplication Test';
+      final jsonResult = bindings.runDiamondRelay(
+        srcId: 0x0001,
+        r1Id: 0x0002,
+        r2Id: 0x0003,
+        dstId: 0x0004,
+        message: msg,
+      );
+
+      expect(jsonResult, contains('"status":"ok"'));
+      expect(jsonResult, contains('"message":"$msg"'));
+      expect(jsonResult, contains('"verified":true'));
+    });
   });
 }

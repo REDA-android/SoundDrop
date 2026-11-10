@@ -74,7 +74,8 @@ void main() {
       expect(wifiHandover.cratePath, equals('crates/sounddrop_hybrid'));
 
       final meshRelay = audit.firstWhere((e) => e.title.contains('Mesh Relay'));
-      expect(meshRelay.status, equals(ImplementationStatus.notImplemented));
+      expect(meshRelay.status, equals(ImplementationStatus.compiledAndTested));
+      expect(meshRelay.cratePath, equals('crates/sounddrop_mesh'));
 
       final crypto = audit.firstWhere((e) => e.title.contains('End-to-End Cryptography'));
       expect(crypto.status, equals(ImplementationStatus.compiledAndTested));

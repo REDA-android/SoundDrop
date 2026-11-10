@@ -472,6 +472,93 @@ pub unsafe extern "C" fn sounddrop_ffi_free_string(ptr: *mut c_char) {
     }
 }
 
+/// Executes simulated 3-node multi-hop acoustic mesh relay session.
+/// Returns JSON-formatted execution outcome string. Must be freed with `sounddrop_ffi_free_string`.
+#[no_mangle]
+pub unsafe extern "C" fn sounddrop_ffi_run_mesh_relay(
+    src_id: u16,
+    relay_id: u16,
+    dst_id: u16,
+    message: *const c_char,
+) -> *mut c_char {
+    if message.is_null() {
+        return std::ptr::null_mut();
+    }
+
+    let msg_str = match CStr::from_ptr(message).to_str() {
+        Ok(s) => s,
+        Err(_) => return std::ptr::null_mut(),
+    };
+
+    match sounddrop_mesh::run_three_node_relay(
+        sounddrop_mesh::NodeId(src_id),
+        sounddrop_mesh::NodeId(relay_id),
+        sounddrop_mesh::NodeId(dst_id),
+        msg_str,
+    ) {
+        Ok(outcome) => {
+            let json = format!(
+                r#"{{"status":"ok","message":"{}","hopsTaken":{},"totalSteps":{},"relaysInvolved":["0x{:04X}"],"verified":{}}}"#,
+                outcome.message,
+                outcome.hops_taken,
+                outcome.total_steps,
+                relay_id,
+                outcome.verified
+            );
+            CString::new(json).unwrap_or_default().into_raw()
+        }
+        Err(e) => {
+            let json = format!(r#"{{"status":"error","message":"{}"}}"#, e);
+            CString::new(json).unwrap_or_default().into_raw()
+        }
+    }
+}
+
+/// Executes simulated diamond topology acoustic mesh relay with duplicate suppression.
+/// Returns JSON-formatted execution outcome string. Must be freed with `sounddrop_ffi_free_string`.
+#[no_mangle]
+pub unsafe extern "C" fn sounddrop_ffi_run_diamond_relay(
+    src_id: u16,
+    r1_id: u16,
+    r2_id: u16,
+    dst_id: u16,
+    message: *const c_char,
+) -> *mut c_char {
+    if message.is_null() {
+        return std::ptr::null_mut();
+    }
+
+    let msg_str = match CStr::from_ptr(message).to_str() {
+        Ok(s) => s,
+        Err(_) => return std::ptr::null_mut(),
+    };
+
+    match sounddrop_mesh::run_diamond_relay(
+        sounddrop_mesh::NodeId(src_id),
+        sounddrop_mesh::NodeId(r1_id),
+        sounddrop_mesh::NodeId(r2_id),
+        sounddrop_mesh::NodeId(dst_id),
+        msg_str,
+    ) {
+        Ok(outcome) => {
+            let json = format!(
+                r#"{{"status":"ok","message":"{}","hopsTaken":{},"totalSteps":{},"relaysInvolved":["0x{:04X}","0x{:04X}"],"verified":{}}}"#,
+                outcome.message,
+                outcome.hops_taken,
+                outcome.total_steps,
+                r1_id,
+                r2_id,
+                outcome.verified
+            );
+            CString::new(json).unwrap_or_default().into_raw()
+        }
+        Err(e) => {
+            let json = format!(r#"{{"status":"error","message":"{}"}}"#, e);
+            CString::new(json).unwrap_or_default().into_raw()
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -573,6 +660,20 @@ mod tests {
 
             assert_eq!(pin_str.len(), 7); // "XXX-XXX"
             assert!(words_str.contains(" - "));
+        }
+    }
+
+    #[test]
+    fn test_ffi_mesh_relay() {
+        let msg = CString::new("FFI_MESH_RELAY_TEST").unwrap();
+        unsafe {
+            let json_ptr = sounddrop_ffi_run_mesh_relay(0x0001, 0x0002, 0x0003, msg.as_ptr());
+            assert!(!json_ptr.is_null());
+            let json_str = CStr::from_ptr(json_ptr).to_str().unwrap();
+            assert!(json_str.contains(r#""status":"ok""#));
+            assert!(json_str.contains(r#""hopsTaken":1"#));
+            assert!(json_str.contains(r#""verified":true"#));
+            sounddrop_ffi_free_string(json_ptr);
         }
     }
 }

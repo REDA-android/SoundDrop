@@ -108,6 +108,30 @@ typedef RunHybridTransferDart = Pointer<Utf8> Function(
     int chunkSize,
     int simulatedWifiBlocked);
 
+typedef RunMeshRelayNative = Pointer<Utf8> Function(
+    Uint16 srcId,
+    Uint16 relayId,
+    Uint16 dstId,
+    Pointer<Utf8> message);
+typedef RunMeshRelayDart = Pointer<Utf8> Function(
+    int srcId,
+    int relayId,
+    int dstId,
+    Pointer<Utf8> message);
+
+typedef RunDiamondRelayNative = Pointer<Utf8> Function(
+    Uint16 srcId,
+    Uint16 r1Id,
+    Uint16 r2Id,
+    Uint16 dstId,
+    Pointer<Utf8> message);
+typedef RunDiamondRelayDart = Pointer<Utf8> Function(
+    int srcId,
+    int r1Id,
+    int r2Id,
+    int dstId,
+    Pointer<Utf8> message);
+
 typedef FreeStringNative = Void Function(Pointer<Utf8> ptr);
 typedef FreeStringDart = void Function(Pointer<Utf8> ptr);
 
@@ -124,6 +148,8 @@ class SoundDropBindings {
   late final GenerateSasDart _generateSas;
   late final RunFileTransferDart _runFileTransfer;
   late final RunHybridTransferDart _runHybridTransfer;
+  late final RunMeshRelayDart _runMeshRelay;
+  late final RunDiamondRelayDart _runDiamondRelay;
   late final FreeStringDart _freeString;
 
   SoundDropBindings([DynamicLibrary? customLib]) {
@@ -138,6 +164,8 @@ class SoundDropBindings {
     _generateSas = _lib.lookupFunction<GenerateSasNative, GenerateSasDart>('sounddrop_ffi_generate_sas');
     _runFileTransfer = _lib.lookupFunction<RunFileTransferNative, RunFileTransferDart>('sounddrop_ffi_run_file_transfer');
     _runHybridTransfer = _lib.lookupFunction<RunHybridTransferNative, RunHybridTransferDart>('sounddrop_ffi_run_hybrid_transfer');
+    _runMeshRelay = _lib.lookupFunction<RunMeshRelayNative, RunMeshRelayDart>('sounddrop_ffi_run_mesh_relay');
+    _runDiamondRelay = _lib.lookupFunction<RunDiamondRelayNative, RunDiamondRelayDart>('sounddrop_ffi_run_diamond_relay');
     _freeString = _lib.lookupFunction<FreeStringNative, FreeStringDart>('sounddrop_ffi_free_string');
   }
 
@@ -419,6 +447,49 @@ class SoundDropBindings {
       calloc.free(filePtr);
       calloc.free(outDirPtr);
       calloc.free(cacheDirPtr);
+    }
+  }
+
+  /// Executes Milestone 8 3-node multi-hop acoustic mesh relay session.
+  String runMeshRelay({
+    required int srcId,
+    required int relayId,
+    required int dstId,
+    required String message,
+  }) {
+    final msgPtr = message.toNativeUtf8();
+    try {
+      final jsonPtr = _runMeshRelay(srcId, relayId, dstId, msgPtr);
+      if (jsonPtr.address == 0) {
+        throw StateError('Null response from mesh relay execution');
+      }
+      final jsonStr = jsonPtr.toDartString();
+      _freeString(jsonPtr);
+      return jsonStr;
+    } finally {
+      calloc.free(msgPtr);
+    }
+  }
+
+  /// Executes Milestone 8 diamond topology mesh relay with duplicate suppression.
+  String runDiamondRelay({
+    required int srcId,
+    required int r1Id,
+    required int r2Id,
+    required int dstId,
+    required String message,
+  }) {
+    final msgPtr = message.toNativeUtf8();
+    try {
+      final jsonPtr = _runDiamondRelay(srcId, r1Id, r2Id, dstId, msgPtr);
+      if (jsonPtr.address == 0) {
+        throw StateError('Null response from diamond relay execution');
+      }
+      final jsonStr = jsonPtr.toDartString();
+      _freeString(jsonPtr);
+      return jsonStr;
+    } finally {
+      calloc.free(msgPtr);
     }
   }
 }

@@ -74,9 +74,9 @@ class SettingsScreenController {
         FeatureAuditEntry(
           title: 'Multi-Hop Acoustic Mesh Relay',
           milestone: 'Milestone 8',
-          cratePath: 'TBD',
-          status: ImplementationStatus.notImplemented,
-          description: 'Store-and-forward relay stations and mesh routing protocols for multi-hop acoustic transmission.',
+          cratePath: 'crates/sounddrop_mesh',
+          status: ImplementationStatus.compiledAndTested,
+          description: 'Store-and-forward relay stations, deduplication cache, hop counting, and TTL loop suppression for multi-hop acoustic transmission.',
         ),
       ];
 }

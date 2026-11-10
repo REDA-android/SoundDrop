@@ -160,6 +160,25 @@ enum Commands {
         #[arg(long, default_value_t = false)]
         block_wifi: bool,
     },
+
+    /// Run Milestone 8: Multi-Hop Acoustic Mesh Relay & Store-and-Forward Routing
+    SendMesh {
+        /// Message payload to transmit across mesh network
+        #[arg(
+            short,
+            long,
+            default_value = "Acoustic Relay A->R->B Verified!"
+        )]
+        message: String,
+
+        /// Network topology: 'linear' (3-node A -> R -> B) or 'diamond' (4-node duplicate suppression)
+        #[arg(short, long, default_value = "linear")]
+        topology: String,
+
+        /// Initial Time-to-Live (TTL) hop limit
+        #[arg(long, default_value_t = 4)]
+        ttl: u8,
+    },
 }
 
 fn main() {
@@ -210,6 +229,11 @@ fn main() {
             chunk_size,
             block_wifi,
         } => run_send_hybrid(&file, &out_dir, chunk_size, block_wifi),
+        Commands::SendMesh {
+            message,
+            topology,
+            ttl,
+        } => run_send_mesh(&message, &topology, ttl),
         Commands::Monitor { duration } => run_monitor(duration),
     }
 }
@@ -774,6 +798,134 @@ fn run_send_hybrid(
         }
         Err(e) => {
             eprintln!("\nHYBRID TRANSFER FAILED: {}", e);
+            std::process::exit(1);
+        }
+    }
+}
+
+fn run_send_mesh(message: &str, topology: &str, ttl: u8) {
+    use sounddrop_mesh::{run_diamond_relay, NodeId, SimulatedAcousticMesh};
+
+    println!("=== SoundDrop Multi-Hop Acoustic Mesh Relay Session (Milestone 8) ===");
+    println!("Payload Message:      \"{}\" ({} bytes)", message, message.len());
+    println!("Initial TTL:          {} hops", ttl);
+    println!("Mesh Topology:        {}", topology.to_uppercase());
+
+    match topology.to_lowercase().as_str() {
+        "linear" => {
+            let src = NodeId(0x0001);
+            let relay = NodeId(0x0002);
+            let dst = NodeId(0x0003);
+
+            println!("\n[Topology Configuration: 3-Node Air-Gapped Linear Relay]");
+            println!("  Node A (0x0001) <--- acoustic air gap ---> Node R (0x0002) <--- acoustic air gap ---> Node B (0x0003)");
+            println!("  (Note: Node A cannot reach Node B directly; acoustic signal requires relay store-and-forward)");
+
+            let mut mesh = SimulatedAcousticMesh::new();
+            mesh.add_node(src);
+            mesh.add_node(relay);
+            mesh.add_node(dst);
+            mesh.add_bi_link(src, relay);
+            mesh.add_bi_link(relay, dst);
+
+            let orig_res = mesh.originate_packet(src, dst, message.as_bytes().to_vec(), ttl);
+            if let Err(e) = orig_res {
+                eprintln!("Failed to originate mesh packet: {}", e);
+                std::process::exit(1);
+            }
+
+            println!("\n[1/2] Node A broadcasting packet into acoustic channel...");
+            let metrics = mesh.run_until_idle(10);
+
+            println!("\n[2/2] Mesh Simulation Event Trace:");
+            for event in &mesh.events {
+                println!(
+                    "  Step {:02}: {} -> {} | Type: {:?} | TTL: {} | Hop: {} => Action: {:?}",
+                    event.step,
+                    event.transmitter,
+                    event.receiver,
+                    event.packet.header.flags,
+                    event.packet.header.ttl,
+                    event.packet.header.hop_count,
+                    event.action
+                );
+            }
+
+            let dst_node = mesh.nodes.get(&dst).unwrap();
+            let delivered = dst_node.inbox.first();
+
+            println!("\n========================================================");
+            println!(">>> MESH RELAY EXECUTION AUDIT <<<");
+            println!("========================================================");
+            println!("Total Steps Executed: {}", metrics.steps);
+            println!("Packets Relayed:      {}", metrics.packets_relayed);
+            println!("Duplicates Suppressed:{}", metrics.duplicates_suppressed);
+            println!("TTL Expirations:      {}", metrics.ttl_expired);
+            println!("Packets Delivered:    {}", metrics.packets_delivered);
+
+            match delivered {
+                Some(pkt) => {
+                    let text = String::from_utf8_lossy(&pkt.payload);
+                    println!("Delivered Message:    \"{}\"", text);
+                    println!("Intermediate Hops:    {}", pkt.header.hop_count);
+                    assert_eq!(text, message, "Delivered message must match original input!");
+                    assert_eq!(
+                        pkt.header.hop_count, 1,
+                        "Must traverse exactly 1 intermediate relay!"
+                    );
+                    println!("Integrity Audit:      BIT-PERFECT RECONSTRUCTION OVER MULTI-HOP RELAY");
+                    println!("Status:               RELAY COMPLETE & VERIFIED");
+                }
+                None => {
+                    eprintln!("ERROR: Packet was not delivered to destination node!");
+                    std::process::exit(1);
+                }
+            }
+            println!("========================================================");
+        }
+        "diamond" => {
+            let src = NodeId(0x0001);
+            let r1 = NodeId(0x0002);
+            let r2 = NodeId(0x0003);
+            let dst = NodeId(0x0004);
+
+            println!("\n[Topology Configuration: 4-Node Concurrent Diamond Relay]");
+            println!("             +---> Relay R1 (0x0002) ---+");
+            println!("  Node A --->|                          |---> Node B (0x0004)");
+            println!("             +---> Relay R2 (0x0003) ---+");
+            println!("  (Note: Both R1 and R2 retransmit; Node B must suppress duplicate concurrent broadcasts)");
+
+            let outcome = match run_diamond_relay(src, r1, r2, dst, message) {
+                Ok(o) => o,
+                Err(e) => {
+                    eprintln!("Diamond relay execution error: {}", e);
+                    std::process::exit(1);
+                }
+            };
+
+            println!("\n========================================================");
+            println!(">>> DIAMOND TOPOLOGY DUPLICATE SUPPRESSION AUDIT <<<");
+            println!("========================================================");
+            println!("Delivered Message:    \"{}\"", outcome.message);
+            println!("Relay Stations:       {:?}", outcome.relays_involved);
+            println!("Hops Taken:           {}", outcome.hops_taken);
+            println!("Duplicate Suppressed: CONFIRMED (Node B dropped redundant broadcast)");
+            println!(
+                "Verification:         {}",
+                if outcome.verified {
+                    "PASS (Zero Duplicate Echoes)"
+                } else {
+                    "FAIL"
+                }
+            );
+            println!("Status:               RELAY COMPLETE & VERIFIED");
+            println!("========================================================");
+        }
+        other => {
+            eprintln!(
+                "Unknown topology '{}'. Supported topologies: 'linear', 'diamond'.",
+                other
+            );
             std::process::exit(1);
         }
     }

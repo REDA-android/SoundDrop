@@ -9,6 +9,7 @@ members = [
     "crates/sounddrop_crypto",
     "crates/sounddrop_file",
     "crates/sounddrop_hybrid",
+    "crates/sounddrop_mesh",
     "crates/sounddrop_ffi",
     "crates/sounddrop_cli",
 ]

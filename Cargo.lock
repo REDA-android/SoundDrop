@@ -951,6 +951,7 @@ dependencies = [
  "sounddrop_file",
  "sounddrop_hybrid",
  "sounddrop_link",
+ "sounddrop_mesh",
  "sounddrop_phy",
  "sounddrop_transport",
 ]
@@ -1003,6 +1004,7 @@ dependencies = [
  "sounddrop_file",
  "sounddrop_hybrid",
  "sounddrop_link",
+ "sounddrop_mesh",
  "sounddrop_phy",
  "sounddrop_transport",
  "tempfile",
@@ -1048,6 +1050,21 @@ dependencies = [
  "log",
  "reed-solomon-erasure",
  "sounddrop_phy",
+ "thiserror",
+]
+
+[[package]]
+name = "sounddrop_mesh"
+version = "0.1.0"
+dependencies = [
+ "crc32fast",
+ "getrandom 0.2.17",
+ "log",
+ "sounddrop_core",
+ "sounddrop_dsp",
+ "sounddrop_link",
+ "sounddrop_phy",
+ "tempfile",
  "thiserror",
 ]
 

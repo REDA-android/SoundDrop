@@ -31,6 +31,7 @@ pub enum FrameType {
     HandshakeInit = 0x05,
     HandshakeResp = 0x06,
     WifiBootstrap = 0x07,
+    MeshRelay = 0x08,
 }
 
 impl TryFrom<u8> for FrameType {
@@ -44,6 +45,7 @@ impl TryFrom<u8> for FrameType {
             0x05 => Ok(FrameType::HandshakeInit),
             0x06 => Ok(FrameType::HandshakeResp),
             0x07 => Ok(FrameType::WifiBootstrap),
+            0x08 => Ok(FrameType::MeshRelay),
             other => Err(FrameError::InvalidFrameType(other)),
         }
     }
