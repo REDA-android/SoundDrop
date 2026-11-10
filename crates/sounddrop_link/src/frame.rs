@@ -27,6 +27,7 @@ pub enum FrameType {
     Data = 0x01,
     Ack = 0x02,
     Nack = 0x03,
+    DataEnd = 0x04,
 }
 
 impl TryFrom<u8> for FrameType {
@@ -36,6 +37,7 @@ impl TryFrom<u8> for FrameType {
             0x01 => Ok(FrameType::Data),
             0x02 => Ok(FrameType::Ack),
             0x03 => Ok(FrameType::Nack),
+            0x04 => Ok(FrameType::DataEnd),
             other => Err(FrameError::InvalidFrameType(other)),
         }
     }

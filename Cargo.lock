@@ -690,6 +690,7 @@ dependencies = [
  "sounddrop_dsp",
  "sounddrop_link",
  "sounddrop_phy",
+ "sounddrop_transport",
 ]
 
 [[package]]
@@ -731,6 +732,19 @@ version = "0.1.0"
 dependencies = [
  "log",
  "sounddrop_dsp",
+ "thiserror",
+]
+
+[[package]]
+name = "sounddrop_transport"
+version = "0.1.0"
+dependencies = [
+ "log",
+ "sounddrop_audio_io",
+ "sounddrop_core",
+ "sounddrop_dsp",
+ "sounddrop_link",
+ "sounddrop_phy",
  "thiserror",
 ]
 

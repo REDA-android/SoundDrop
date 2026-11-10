@@ -5,6 +5,7 @@ members = [
     "crates/sounddrop_link",
     "crates/sounddrop_audio_io",
     "crates/sounddrop_core",
+    "crates/sounddrop_transport",
     "crates/sounddrop_cli",
 ]
 resolver = "2"
