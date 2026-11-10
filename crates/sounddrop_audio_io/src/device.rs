@@ -78,7 +78,7 @@ pub fn play_samples_blocking(samples: &[f32], sample_rate: u32) -> Result<(), Au
 
     let mut config = DeviceConfig::new(DeviceType::Playback);
     config.playback_mut().set_format(Format::F32);
-    config.playback_mut().set_channels(1);
+    config.playback_mut().set_channels(2); // Native Windows stereo
     config.set_sample_rate(sample_rate);
     config.playback_mut().set_share_mode(ShareMode::Shared);
 
@@ -94,49 +94,34 @@ pub fn play_samples_blocking(samples: &[f32], sample_rate: u32) -> Result<(), Au
 
     device.set_data_callback(move |_device, output, _input| {
         let Ok(mut head) = head_cb.lock() else { return };
-        let frame_count = output.frame_count();
-        let dev_channels = output.channels().max(1) as usize;
+        let bytes = output.as_bytes_mut();
+        if bytes.is_empty() {
+            return;
+        }
 
-        match output.format() {
-            Format::F32 => {
-                let out_slice = output.as_samples_mut::<f32>();
-                for f in 0..frame_count {
-                    let sample = if *head < samples_cb.len() {
-                        let s = samples_cb[*head];
-                        *head += 1;
-                        s
-                    } else {
-                        0.0
-                    };
-                    for ch in 0..dev_channels {
-                        let idx = f * dev_channels + ch;
-                        if idx < out_slice.len() {
-                            out_slice[idx] = sample;
-                        }
-                    }
-                }
-            }
-            Format::S16 => {
-                let out_slice = output.as_samples_mut::<i16>();
-                for f in 0..frame_count {
-                    let sample = if *head < samples_cb.len() {
-                        let s = samples_cb[*head];
-                        *head += 1;
-                        (s * 32767.0).clamp(-32768.0, 32767.0) as i16
-                    } else {
-                        0
-                    };
-                    for ch in 0..dev_channels {
-                        let idx = f * dev_channels + ch;
-                        if idx < out_slice.len() {
-                            out_slice[idx] = sample;
-                        }
-                    }
-                }
-            }
-            _ => {
-                // Generic byte zeroing fallback for unexpected formats
-                output.as_bytes_mut().fill(0);
+        // Each F32 sample is 4 bytes. In stereo, 1 frame = 2 channels * 4 bytes = 8 bytes.
+        let bytes_per_frame = 8usize;
+        let frames = bytes.len() / bytes_per_frame;
+
+        // Fill buffer directly in native IEEE float32 stereo
+        let f32_slice: &mut [f32] = unsafe {
+            std::slice::from_raw_parts_mut(bytes.as_mut_ptr() as *mut f32, bytes.len() / 4)
+        };
+
+        for f in 0..frames {
+            let sample = if *head < samples_cb.len() {
+                let s = samples_cb[*head];
+                *head += 1;
+                s
+            } else {
+                0.0
+            };
+            // Duplicate mono signal to both Left and Right channels
+            let left_idx = f * 2;
+            let right_idx = f * 2 + 1;
+            if right_idx < f32_slice.len() {
+                f32_slice[left_idx] = sample;
+                f32_slice[right_idx] = sample;
             }
         }
     });
