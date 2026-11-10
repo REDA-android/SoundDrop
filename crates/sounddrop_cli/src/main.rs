@@ -84,6 +84,29 @@ enum Commands {
         #[arg(long, default_value_t = 18.0)]
         snr_db: f32,
     },
+
+    /// Run an end-to-end encrypted acoustic transfer with X25519 key exchange, SAS verification, and ChaCha20-Poly1305 AEAD
+    SendSecure {
+        /// Plaintext message to encrypt and transmit
+        #[arg(
+            short,
+            long,
+            default_value = "Top Secret: Acoustic communication secured by X25519 and ChaCha20-Poly1305 AEAD."
+        )]
+        message: String,
+
+        /// Simulated data packet loss rate [0.0 - 0.5]
+        #[arg(long, default_value_t = 0.10)]
+        data_loss: f32,
+
+        /// Simulated ACK packet loss rate [0.0 - 0.5]
+        #[arg(long, default_value_t = 0.05)]
+        ack_loss: f32,
+
+        /// Channel SNR in dB
+        #[arg(long, default_value_t = 20.0)]
+        snr_db: f32,
+    },
 }
 
 fn main() {
@@ -114,6 +137,12 @@ fn main() {
             ack_loss,
             snr_db,
         } => run_send_arq(&message, data_loss, ack_loss, snr_db),
+        Commands::SendSecure {
+            message,
+            data_loss,
+            ack_loss,
+            snr_db,
+        } => run_send_secure(&message, data_loss, ack_loss, snr_db),
     }
 }
 
@@ -361,3 +390,70 @@ fn run_send_arq(message: &str, data_loss: f32, ack_loss: f32, snr_db: f32) {
         }
     }
 }
+
+fn run_send_secure(message: &str, data_loss: f32, ack_loss: f32, snr_db: f32) {
+    use sounddrop_transport::{run_simulated_encrypted_transfer, ArqConfig, SimulatedAcousticChannel};
+
+    println!("=== SoundDrop End-to-End Encrypted Acoustic Session (Milestone 3) ===");
+    println!("Plaintext:            \"{}\" ({} bytes)", message, message.len());
+    println!("Simulated DATA Loss:  {:.1}%", data_loss * 100.0);
+    println!("Simulated ACK Loss:   {:.1}%", ack_loss * 100.0);
+    println!("Channel SNR:          {:.1} dB", snr_db);
+
+    let config = PhyConfig::audible_robust_48k();
+    let channel = SimulatedAcousticChannel::new(config.clone(), data_loss, ack_loss, snr_db);
+    let arq_config = ArqConfig {
+        max_retries: 5,
+        timeout_sec: 4.5,
+        turnaround_delay_sec: 0.1,
+    };
+
+    println!("\n[Phase 1] Performing Ephemeral X25519 Acoustic Handshake...");
+    let t_start = Instant::now();
+
+    match run_simulated_encrypted_transfer(message.as_bytes(), config, arq_config, &channel) {
+        Ok(outcome) => {
+            let total_duration = t_start.elapsed();
+
+            println!("\n========================================================");
+            println!(">>> CRYPTOGRAPHIC HANDSHAKE & SAS VERIFICATION <<<");
+            println!("========================================================");
+            println!("Key Exchange:         Curve25519 (ECDH, 256-bit ephemeral keys)");
+            println!("Initiator SAS PIN:    {}", outcome.initiator_sas.pin);
+            println!("Responder SAS PIN:    {}", outcome.responder_sas.pin);
+            println!("Initiator Mnemonic:   {}", outcome.initiator_sas.words);
+            println!("Responder Mnemonic:   {}", outcome.responder_sas.words);
+            println!(
+                "SAS Comparison:       {}",
+                if outcome.sas_verified {
+                    "MATCH CONFIRMED (Zero MITM Detected)"
+                } else {
+                    "MISMATCH DETECTED (Possible Interception)"
+                }
+            );
+
+            println!("\n========================================================");
+            println!(">>> AEAD ENCRYPTED ARQ TRANSFER RESULTS <<<");
+            println!("========================================================");
+            println!("AEAD Cipher:          ChaCha20-Poly1305 (IETF, 96-bit nonce)");
+            println!("Replay Protection:    Monotonic Counter + AAD Header Binding");
+            println!("Total Frames Sent:    {}", outcome.metrics.total_frames);
+            println!("Retransmissions:      {}", outcome.metrics.retransmissions);
+            println!("Total Air-Time:       {:.2?}", outcome.metrics.elapsed);
+            println!("Total Session Time:   {:.2?}", total_duration);
+            println!("Effective Bitrate:    {:.1} bps", outcome.metrics.effective_bps);
+
+            match String::from_utf8(outcome.decrypted_payload) {
+                Ok(text) => println!("Decrypted Plaintext:  \"{}\"", text),
+                Err(_) => println!("Decrypted Plaintext:  [Binary Payload]"),
+            }
+            println!("AEAD Authentication:  PASS (Poly1305 128-bit MAC Verified)");
+            println!("========================================================");
+        }
+        Err(e) => {
+            eprintln!("\nENCRYPTED TRANSFER FAILED: {}", e);
+            std::process::exit(1);
+        }
+    }
+}
+

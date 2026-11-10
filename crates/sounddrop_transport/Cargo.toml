@@ -11,5 +11,6 @@ sounddrop_phy = { path = "../sounddrop_phy" }
 sounddrop_link = { path = "../sounddrop_link" }
 sounddrop_audio_io = { path = "../sounddrop_audio_io" }
 sounddrop_core = { path = "../sounddrop_core" }
+sounddrop_crypto = { path = "../sounddrop_crypto" }
 thiserror = { workspace = true }
 log = { workspace = true }

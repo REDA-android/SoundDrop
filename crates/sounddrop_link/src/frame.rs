@@ -28,6 +28,8 @@ pub enum FrameType {
     Ack = 0x02,
     Nack = 0x03,
     DataEnd = 0x04,
+    HandshakeInit = 0x05,
+    HandshakeResp = 0x06,
 }
 
 impl TryFrom<u8> for FrameType {
@@ -38,6 +40,8 @@ impl TryFrom<u8> for FrameType {
             0x02 => Ok(FrameType::Ack),
             0x03 => Ok(FrameType::Nack),
             0x04 => Ok(FrameType::DataEnd),
+            0x05 => Ok(FrameType::HandshakeInit),
+            0x06 => Ok(FrameType::HandshakeResp),
             other => Err(FrameError::InvalidFrameType(other)),
         }
     }
