@@ -20,4 +20,6 @@ Thumbs.db
 .dart_tool/
 .packages
 build/
+dist/
+
 
