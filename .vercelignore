@@ -2,7 +2,14 @@
 node_modules/
 sound-drop/
 sound-drop-native/
+crates/
+apps/
+vendor/
+target/
+platform/
+scripts/
 external-repos/
 native/
 .git/
 *.log
+
