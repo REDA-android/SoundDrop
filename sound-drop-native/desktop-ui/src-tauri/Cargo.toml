@@ -1,0 +1,15 @@
+[package]
+name = "sound-drop-desktop"
+version = "2.0.0"
+description = "Native Desktop Shell for Sound Drop (Tauri v2 + Rust)"
+authors = ["Sound Drop Systems Architect"]
+edition = "2021"
+
+[dependencies]
+tauri = { version = "2.0", features = [] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sound-drop-core-dsp = { path = "../../core-dsp" }
+
+[build-dependencies]
+tauri-build = { version = "2.0", features = [] }

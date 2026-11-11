@@ -1,0 +1,1057 @@
+// Sound Drop v2 Native UI (Slint)
+// Ultra-complete interface with Sonar Radar, 16 Goertzel Symbol Bars, Packet Matrix,
+// Page-Mascot Companion, Metalforge Titanium design, SAS verification, and 10-Protocol Hub.
+
+export struct PeerBubbleData {
+    id: int,
+    name: string,
+    snr_db: float,
+    distance_m: float,
+    active: bool,
+}
+
+component EmitButton inherits Rectangle {
+    in property <bool> active;
+    in property <string> label;
+    callback clicked();
+
+    width: 170px;
+    height: 170px;
+    border-radius: 85px;
+    border-width: 1.5px;
+    border-color: root.active ? #00F5D4 : #ffffff30;
+    background: root.active ? #00F5D4 : #141824;
+    animate background { duration: 220ms; easing: ease-out; }
+    animate border-color { duration: 220ms; easing: ease-out; }
+
+    VerticalLayout {
+        alignment: center;
+        spacing: 4px;
+
+        Text {
+            text: root.label;
+            color: root.active ? #07080a : #ffffff;
+            font-size: 15px;
+            font-weight: 800;
+            horizontal-alignment: center;
+        }
+        Text {
+            text: root.active ? "ACOUSTIQUE ACTIF" : "TOUCHER POUR ÉMETTRE";
+            color: root.active ? #07080a99 : #00F5D4aa;
+            font-size: 10px;
+            font-weight: 700;
+            horizontal-alignment: center;
+        }
+    }
+    TouchArea { clicked => { root.clicked(); } }
+}
+
+component MascotFace inherits Rectangle {
+    in property <string> mascot-state: "REPOS"; // REPOS, ECOUTE, BRUIT_FORT, RECEPTION, SUCCES, ERREUR
+    width: 64px;
+    height: 64px;
+    border-radius: 32px;
+    background: #141824;
+    border-width: 1px;
+    border-color: root.mascot-state == "ERREUR" ? #FF5C5C :
+                 root.mascot-state == "SUCCES" ? #00F5D4 :
+                 root.mascot-state == "BRUIT_FORT" ? #FFB020 : #ffffff30;
+
+    Text {
+        text: root.mascot-state == "REPOS" ? "•‿•" :
+              root.mascot-state == "ECOUTE" ? "•_•?" :
+              root.mascot-state == "BRUIT_FORT" ? ">_<" :
+              root.mascot-state == "RECEPTION" ? "◉_◉" :
+              root.mascot-state == "SUCCES" ? "^o^" : "¯\\_(ツ)_/¯";
+        color: root.mascot-state == "ERREUR" ? #FF5C5C :
+               root.mascot-state == "SUCCES" ? #00F5D4 :
+               root.mascot-state == "BRUIT_FORT" ? #FFB020 : #FFFFFF;
+        font-size: 24px;
+        font-weight: 800;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+}
+
+component GoertzelBar inherits Rectangle {
+    in property <int> tone-idx: 0;
+    in property <float> energy-db: 12.0; // 0 to 50 dB
+    in property <bool> is-dominant: false;
+
+    width: 28px;
+    height: 120px;
+    background: #0b0e14;
+    border-radius: 4px;
+    border-width: 0.5px;
+    border-color: #ffffff15;
+
+    VerticalLayout {
+        alignment: end;
+        padding: 2px;
+
+        Rectangle {
+            height: clamp(root.energy-db * 2.2px, 4px, 114px);
+            background: root.is-dominant ? #00F5D4 :
+                        root.energy-db > 30.0 ? #38bdf8 : #1e293b;
+            border-radius: 3px;
+            animate height { duration: 120ms; easing: ease-out; }
+            animate background { duration: 120ms; easing: ease-out; }
+        }
+    }
+
+    Text {
+        y: parent.height - 18px;
+        text: "T" + root.tone-idx;
+        font-size: 9px;
+        font-weight: 700;
+        color: root.is-dominant ? #07080A : #94a3b8;
+        horizontal-alignment: center;
+    }
+}
+
+export component MainWindow inherits Window {
+    title: "Sound Drop Native — Air-Gapped Acoustic System (Zero-Web)";
+    preferred-width: 980px;
+    preferred-height: 720px;
+    background: #07080A; // Design token: Fond obsidian
+
+    // Core application state
+    in-out property <string> current-view: "RADAR"; // RADAR, STUDIO_FSK, TRANSFERT, PROTOCOLES, MESH, SATELLITE
+    in-out property <string> current-state: "INACTIF"; // INACTIF, ECOUTE, APPAIRAGE, SAS, ENVOI, RECEPTION, TERMINE, ERREUR
+    in-out property <string> state-text: "Prêt pour le transfert acoustique";
+    in-out property <string> accessible-status: "Système inactif. Prêt à émettre ou recevoir.";
+    in-out property <string> current-lang: "FR"; // FR, EN, AR
+    in-out property <string> active-band: "AUDIBLE"; // AUDIBLE (1.5-5.5 kHz) vs ULTRASONIC (17.5-19.5 kHz)
+    in-out property <string> active-profile: "Normal (14 o/s)";
+    in-out property <bool> software-diode-active: false;
+    in-out property <bool> reduce-animations: false;
+
+    // Mesh & Orbital properties
+    in-out property <int> mesh-neighbors-count: 3;
+    in-out property <string> mesh-best-relay: "Relais Douar #2 (LQI: 92%)";
+    in-out property <string> mesh-route-hops: "Alice -> R1 -> R2 -> Bob (3 sauts)";
+    in-out property <string> satellite-status: "En attente de passage orbital (LEO)";
+    in-out property <string> satellite-provider-name: "Iridium SBD 9603 (Bande L)";
+    in-out property <int> satellite-queued-msgs: 1;
+
+    // Metrics & Telemetry
+    in-out property <float> live-snr-db: 24.5;
+    in-out property <float> ambient-noise-level: 21.0;
+    in-out property <string> live-frequency: "2250 Hz";
+    in-out property <string> sas-code: "490215";
+    in-out property <string> error-action-message: "Trop de bruit — éloignez-vous";
+
+    // Preview (Packet 0)
+    in-out property <string> preview-filename: "miniature_photo.jpg";
+    in-out property <string> preview-filesize: "3.2 Ko";
+    in-out property <string> preview-blurhash: "LzHLlV2Z$5Shhqazjtf7gcfjfQfj";
+    in-out property <string> estimated-duration: "2 secondes";
+    in-out property <float> transfer-progress: 0.0;
+
+    // Callbacks to Rust runtime
+    callback switch-view(string);
+    callback switch-state(string);
+    callback toggle-emit();
+    callback toggle-listen();
+    callback switch-band();
+    callback toggle-diode();
+    callback cycle-language();
+    callback accept-preview();
+    callback reject-preview();
+    callback confirm-sas();
+
+    VerticalLayout {
+        padding: 20px;
+        spacing: 14px;
+
+        // =====================================================================
+        // 1. TOP BAR: METALFORGE TITANIUM & PROTOCOL STATUS
+        // =====================================================================
+        Rectangle {
+            height: 56px;
+            background: #0F1117;
+            border-radius: 10px;
+            border-width: 0.5px;
+            border-color: #ffffff25;
+
+            HorizontalLayout {
+                padding-left: 18px;
+                padding-right: 18px;
+                alignment: space-between;
+
+                HorizontalLayout {
+                    spacing: 14px;
+                    alignment: center;
+
+                    Text {
+                        text: "SOUND DROP";
+                        color: #00F5D4;
+                        font-size: 17px;
+                        font-weight: 900;
+                        letter-spacing: 1.5px;
+                    }
+                    Text {
+                        text: "Air-Gap • 16-FSK • Slint GPU";
+                        color: #A0A5B5;
+                        font-size: 11px;
+                        vertical-alignment: center;
+                    }
+                }
+
+                // Interactive Top Controls
+                HorizontalLayout {
+                    spacing: 10px;
+                    alignment: center;
+
+                    // Band Switcher (AUDIBLE vs ULTRASONIQUE)
+                    Rectangle {
+                        width: 135px;
+                        height: 32px;
+                        background: root.active-band == "ULTRASONIC" ? #2e1065 : #1a2234;
+                        border-radius: 6px;
+                        border-width: 0.5px;
+                        border-color: root.active-band == "ULTRASONIC" ? #c084fc : #38bdf8;
+
+                        Text {
+                            text: "BANDE: " + root.active-band;
+                            font-size: 11px;
+                            font-weight: 700;
+                            color: root.active-band == "ULTRASONIC" ? #c084fc : #38bdf8;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                        TouchArea { clicked => { root.switch-band(); } }
+                    }
+
+                    // Hardware Data Diode Switcher
+                    Rectangle {
+                        width: 140px;
+                        height: 32px;
+                        background: root.software-diode-active ? #4c0519 : #1a2234;
+                        border-radius: 6px;
+                        border-width: 0.5px;
+                        border-color: root.software-diode-active ? #FF5C5C : #ffffff20;
+
+                        Text {
+                            text: root.software-diode-active ? "DIODE RX SEULE" : "BIDIRECTIONNEL";
+                            font-size: 10px;
+                            font-weight: 800;
+                            color: root.software-diode-active ? #FF5C5C : #A0A5B5;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                        TouchArea { clicked => { root.toggle-diode(); } }
+                    }
+
+                    // Language Selector
+                    Rectangle {
+                        width: 44px;
+                        height: 32px;
+                        background: #1a2234;
+                        border-radius: 6px;
+                        border-width: 0.5px;
+                        border-color: #ffffff25;
+
+                        Text {
+                            text: root.current-lang;
+                            color: #FFFFFF;
+                            font-size: 11px;
+                            font-weight: 800;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                        TouchArea { clicked => { root.cycle-language(); } }
+                    }
+                }
+            }
+        }
+
+        // =====================================================================
+        // 2. VIEW SELECTOR TABS (RADAR, STUDIO FSK, TRANSFERT, 10-PROTOCOLES)
+        // =====================================================================
+        Rectangle {
+            height: 42px;
+            background: #0F1117;
+            border-radius: 8px;
+            border-width: 0.5px;
+            border-color: #ffffff20;
+
+            HorizontalLayout {
+                padding: 4px;
+                spacing: 8px;
+
+                Rectangle {
+                    background: root.current-view == "RADAR" ? #00F5D4 : transparent;
+                    border-radius: 6px;
+                    Text {
+                        text: "RADAR BULLES AIRDROP";
+                        color: root.current-view == "RADAR" ? #07080A : #A0A5B5;
+                        font-size: 11px;
+                        font-weight: 800;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                    TouchArea { clicked => { root.switch-view("RADAR"); } }
+                }
+
+                Rectangle {
+                    background: root.current-view == "STUDIO_FSK" ? #00F5D4 : transparent;
+                    border-radius: 6px;
+                    Text {
+                        text: "STUDIO SPECTRE 16-FSK";
+                        color: root.current-view == "STUDIO_FSK" ? #07080A : #A0A5B5;
+                        font-size: 11px;
+                        font-weight: 800;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                    TouchArea { clicked => { root.switch-view("STUDIO_FSK"); } }
+                }
+
+                Rectangle {
+                    background: root.current-view == "TRANSFERT" ? #00F5D4 : transparent;
+                    border-radius: 6px;
+                    Text {
+                        text: "TRANSFERT & SAS AIR-GAP";
+                        color: root.current-view == "TRANSFERT" ? #07080A : #A0A5B5;
+                        font-size: 11px;
+                        font-weight: 800;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                    TouchArea { clicked => { root.switch-view("TRANSFERT"); } }
+                }
+
+                Rectangle {
+                    background: root.current-view == "PROTOCOLES" ? #00F5D4 : transparent;
+                    border-radius: 6px;
+                    Text {
+                        text: "PROTOCOLES";
+                        color: root.current-view == "PROTOCOLES" ? #07080A : #A0A5B5;
+                        font-size: 11px;
+                        font-weight: 800;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                    TouchArea { clicked => { root.switch-view("PROTOCOLES"); } }
+                }
+
+                Rectangle {
+                    background: root.current-view == "MESH" ? #00F5D4 : transparent;
+                    border-radius: 6px;
+                    Text {
+                        text: "MAILLAGE MESH";
+                        color: root.current-view == "MESH" ? #07080A : #A0A5B5;
+                        font-size: 11px;
+                        font-weight: 800;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                    TouchArea { clicked => { root.switch-view("MESH"); } }
+                }
+
+                Rectangle {
+                    background: root.current-view == "SATELLITE" ? #00F5D4 : transparent;
+                    border-radius: 6px;
+                    Text {
+                        text: "RELAIS SATELLITE";
+                        color: root.current-view == "SATELLITE" ? #07080A : #A0A5B5;
+                        font-size: 11px;
+                        font-weight: 800;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                    TouchArea { clicked => { root.switch-view("SATELLITE"); } }
+                }
+            }
+        }
+
+        // =====================================================================
+        // 3. MAIN WORKSPACE CONTENT
+        // =====================================================================
+        Rectangle {
+            background: #0F1117;
+            border-radius: 10px;
+            border-width: 0.5px;
+            border-color: #ffffff20;
+
+            VerticalLayout {
+                padding: 20px;
+                spacing: 16px;
+
+                // --- TOP STATUS WITH MASCOT ---
+                HorizontalLayout {
+                    alignment: space-between;
+
+                    HorizontalLayout {
+                        spacing: 12px;
+                        alignment: center;
+
+                        MascotFace {
+                            mascot-state: root.current-state == "INACTIF" ? "REPOS" :
+                                          root.current-state == "ECOUTE" ? "ECOUTE" :
+                                          root.current-state == "APPAIRAGE" ? "ECOUTE" :
+                                          root.current-state == "SAS" ? "RECEPTION" :
+                                          root.current-state == "ENVOI" ? "RECEPTION" :
+                                          root.current-state == "RECEPTION" ? "RECEPTION" :
+                                          root.current-state == "TERMINE" ? "SUCCES" : "ERREUR";
+                        }
+
+                        VerticalLayout {
+                            alignment: center;
+                            Text {
+                                text: root.state-text;
+                                color: root.current-state == "ERREUR" ? #FF5C5C :
+                                       root.current-state == "TERMINE" ? #00F5D4 : #FFFFFF;
+                                font-size: 18px;
+                                font-weight: 800;
+                            }
+                            Text {
+                                text: root.accessible-status;
+                                color: #A0A5B5;
+                                font-size: 12px;
+                            }
+                        }
+                    }
+
+                    // Telemetry Indicators
+                    HorizontalLayout {
+                        spacing: 14px;
+                        alignment: center;
+
+                        Rectangle {
+                            height: 32px;
+                            background: #141824;
+                            border-radius: 6px;
+                            HorizontalLayout {
+                                padding-left: 10px;
+                                padding-right: 10px;
+                                Text {
+                                    text: "SNR: " + root.live-snr-db + " dB";
+                                    color: root.live-snr-db > 20.0 ? #00F5D4 : #FFB020;
+                                    font-size: 11px;
+                                    font-weight: 700;
+                                    vertical-alignment: center;
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            height: 32px;
+                            background: #141824;
+                            border-radius: 6px;
+                            HorizontalLayout {
+                                padding-left: 10px;
+                                padding-right: 10px;
+                                Text {
+                                    text: "FREQ: " + root.live-frequency;
+                                    color: #38bdf8;
+                                    font-size: 11px;
+                                    font-weight: 700;
+                                    vertical-alignment: center;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // =============================================================
+                // VIEW A: RADAR BULLES AIRDROP
+                // =============================================================
+                if root.current-view == "RADAR" : VerticalLayout {
+                    spacing: 16px;
+                    alignment: center;
+
+                    // Radar Sonar Container
+                    Rectangle {
+                        width: 480px;
+                        height: 290px;
+                        background: #080a10;
+                        border-radius: 145px;
+                        border-width: 1px;
+                        border-color: #00F5D440;
+
+                        // Concentric Sonar Ring 1
+                        Rectangle {
+                            width: 320px;
+                            height: 200px;
+                            x: (parent.width - self.width) / 2;
+                            y: (parent.height - self.height) / 2;
+                            border-radius: 100px;
+                            border-width: 0.5px;
+                            border-color: #00F5D425;
+                            background: transparent;
+                        }
+
+                        // Concentric Sonar Ring 2
+                        Rectangle {
+                            width: 160px;
+                            height: 100px;
+                            x: (parent.width - self.width) / 2;
+                            y: (parent.height - self.height) / 2;
+                            border-radius: 50px;
+                            border-width: 0.5px;
+                            border-color: #00F5D415;
+                            background: transparent;
+                        }
+
+                        // Simulated Discovered Peer Bubbles (Rapier2D positions)
+                        Rectangle {
+                            x: 90px;
+                            y: 60px;
+                            width: 60px;
+                            height: 60px;
+                            border-radius: 30px;
+                            background: #1e293b;
+                            border-width: 1px;
+                            border-color: #38bdf8;
+
+                            VerticalLayout {
+                                alignment: center;
+                                Text {
+                                    text: "Mac-M3";
+                                    font-size: 10px;
+                                    font-weight: 800;
+                                    color: #FFFFFF;
+                                    horizontal-alignment: center;
+                                }
+                                Text {
+                                    text: "28 dB";
+                                    font-size: 9px;
+                                    color: #38bdf8;
+                                    horizontal-alignment: center;
+                                }
+                            }
+                            TouchArea { clicked => { root.switch-state("APPAIRAGE"); } }
+                        }
+
+                        Rectangle {
+                            x: 330px;
+                            y: 160px;
+                            width: 68px;
+                            height: 68px;
+                            border-radius: 34px;
+                            background: #1e293b;
+                            border-width: 1.5px;
+                            border-color: #00F5D4;
+
+                            VerticalLayout {
+                                alignment: center;
+                                Text {
+                                    text: "Pixel-9";
+                                    font-size: 10px;
+                                    font-weight: 800;
+                                    color: #FFFFFF;
+                                    horizontal-alignment: center;
+                                }
+                                Text {
+                                    text: "34 dB";
+                                    font-size: 9px;
+                                    color: #00F5D4;
+                                    horizontal-alignment: center;
+                                }
+                            }
+                            TouchArea { clicked => { root.switch-state("APPAIRAGE"); } }
+                        }
+
+                        // Center Device Anchor
+                        Rectangle {
+                            x: (parent.width - self.width) / 2;
+                            y: (parent.height - self.height) / 2;
+                            width: 44px;
+                            height: 44px;
+                            border-radius: 22px;
+                            background: #00F5D4;
+
+                            Text {
+                                text: "MOI";
+                                font-size: 11px;
+                                font-weight: 900;
+                                color: #07080A;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+                        }
+                    }
+
+                    // Action Controls
+                    HorizontalLayout {
+                        alignment: center;
+                        spacing: 20px;
+
+                        Rectangle {
+                            width: 160px;
+                            height: 38px;
+                            background: #00F5D4;
+                            border-radius: 6px;
+                            Text {
+                                text: "BALAYAGE RADAR";
+                                color: #07080A;
+                                font-size: 12px;
+                                font-weight: 800;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+                            TouchArea { clicked => { root.toggle-listen(); } }
+                        }
+
+                        Rectangle {
+                            width: 160px;
+                            height: 38px;
+                            background: #18202f;
+                            border-radius: 6px;
+                            border-width: 0.5px;
+                            border-color: #38bdf8;
+                            Text {
+                                text: "ENVOYER FICHIER";
+                                color: #38bdf8;
+                                font-size: 12px;
+                                font-weight: 800;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+                            TouchArea { clicked => { root.switch-view("TRANSFERT"); } }
+                        }
+                    }
+                }
+
+                // =============================================================
+                // VIEW B: STUDIO SPECTRE 16-FSK & GOERTZEL BARS
+                // =============================================================
+                if root.current-view == "STUDIO_FSK" : VerticalLayout {
+                    spacing: 14px;
+                    alignment: center;
+
+                    Text {
+                        text: "Démodulation 16-FSK par Goertzel (Espacement = 125 Hz • 1,5 à 3,5 kHz)";
+                        color: #A0A5B5;
+                        font-size: 12px;
+                        font-weight: 700;
+                        horizontal-alignment: center;
+                    }
+
+                    // 16 Goertzel FSK Symbol Bars
+                    HorizontalLayout {
+                        spacing: 6px;
+                        alignment: center;
+
+                        GoertzelBar { tone-idx: 0; energy-db: 14.0; is-dominant: false; }
+                        GoertzelBar { tone-idx: 1; energy-db: 18.5; is-dominant: false; }
+                        GoertzelBar { tone-idx: 2; energy-db: 22.0; is-dominant: false; }
+                        GoertzelBar { tone-idx: 3; energy-db: 16.0; is-dominant: false; }
+                        GoertzelBar { tone-idx: 4; energy-db: 46.2; is-dominant: true; }
+                        GoertzelBar { tone-idx: 5; energy-db: 19.0; is-dominant: false; }
+                        GoertzelBar { tone-idx: 6; energy-db: 12.0; is-dominant: false; }
+                        GoertzelBar { tone-idx: 7; energy-db: 24.0; is-dominant: false; }
+                        GoertzelBar { tone-idx: 8; energy-db: 17.0; is-dominant: false; }
+                        GoertzelBar { tone-idx: 9; energy-db: 20.0; is-dominant: false; }
+                        GoertzelBar { tone-idx: 10; energy-db: 15.0; is-dominant: false; }
+                        GoertzelBar { tone-idx: 11; energy-db: 38.0; is-dominant: false; }
+                        GoertzelBar { tone-idx: 12; energy-db: 19.5; is-dominant: false; }
+                        GoertzelBar { tone-idx: 13; energy-db: 13.0; is-dominant: false; }
+                        GoertzelBar { tone-idx: 14; energy-db: 21.0; is-dominant: false; }
+                        GoertzelBar { tone-idx: 15; energy-db: 11.0; is-dominant: false; }
+                    }
+
+                    // Packet Matrix Grid (16-FSK chunks + Parity shards)
+                    Rectangle {
+                        height: 90px;
+                        background: #0b0e14;
+                        border-radius: 8px;
+                        border-width: 0.5px;
+                        border-color: #ffffff15;
+
+                        VerticalLayout {
+                            padding: 10px;
+                            spacing: 6px;
+
+                            Text {
+                                text: "MATRICE DES TRAMES REED-SOLOMON [5 DONNÉES + 2 PARITÉ]";
+                                font-size: 10px;
+                                font-weight: 800;
+                                color: #A0A5B5;
+                            }
+
+                            HorizontalLayout {
+                                spacing: 8px;
+                                alignment: center;
+
+                                Rectangle { width: 34px; height: 34px; border-radius: 4px; background: #00F5D4; Text { text: "D0"; font-size: 10px; font-weight: 800; color: #07080a; horizontal-alignment: center; vertical-alignment: center; } }
+                                Rectangle { width: 34px; height: 34px; border-radius: 4px; background: #00F5D4; Text { text: "D1"; font-size: 10px; font-weight: 800; color: #07080a; horizontal-alignment: center; vertical-alignment: center; } }
+                                Rectangle { width: 34px; height: 34px; border-radius: 4px; background: #00F5D4; Text { text: "D2"; font-size: 10px; font-weight: 800; color: #07080a; horizontal-alignment: center; vertical-alignment: center; } }
+                                Rectangle { width: 34px; height: 34px; border-radius: 4px; background: #38bdf8; Text { text: "D3"; font-size: 10px; font-weight: 800; color: #07080a; horizontal-alignment: center; vertical-alignment: center; } }
+                                Rectangle { width: 34px; height: 34px; border-radius: 4px; background: #38bdf8; Text { text: "D4"; font-size: 10px; font-weight: 800; color: #07080a; horizontal-alignment: center; vertical-alignment: center; } }
+                                Rectangle { width: 34px; height: 34px; border-radius: 4px; background: #c084fc; Text { text: "P0"; font-size: 10px; font-weight: 800; color: #07080a; horizontal-alignment: center; vertical-alignment: center; } }
+                                Rectangle { width: 34px; height: 34px; border-radius: 4px; background: #c084fc; Text { text: "P1"; font-size: 10px; font-weight: 800; color: #07080a; horizontal-alignment: center; vertical-alignment: center; } }
+                            }
+                        }
+                    }
+                }
+
+                // =============================================================
+                // VIEW C: TRANSFERT & SAS AIR-GAP
+                // =============================================================
+                if root.current-view == "TRANSFERT" : VerticalLayout {
+                    spacing: 16px;
+                    alignment: center;
+
+                    // Central Dual-Emit Buttons
+                    if root.current-state == "INACTIF" || root.current-state == "ECOUTE" || root.current-state == "APPAIRAGE" : HorizontalLayout {
+                        alignment: center;
+                        spacing: 24px;
+
+                        EmitButton {
+                            active: root.current-state == "APPAIRAGE";
+                            label: root.current-state == "APPAIRAGE" ? "ÉMISSION EN COURS" : "ENVOYER";
+                            clicked => { root.toggle-emit(); }
+                        }
+
+                        EmitButton {
+                            active: root.current-state == "ECOUTE";
+                            label: root.current-state == "ECOUTE" ? "RADAR ÉCOUTE" : "RECEVOIR";
+                            clicked => { root.toggle-listen(); }
+                        }
+                    }
+
+                    // SAS Verification Screen
+                    if root.current-state == "SAS" : VerticalLayout {
+                        alignment: center;
+                        spacing: 12px;
+
+                        Text {
+                            text: "Vérification de proximité (SAS) : comparez le code sur les deux écrans";
+                            color: #A0A5B5;
+                            font-size: 13px;
+                            horizontal-alignment: center;
+                        }
+
+                        Rectangle {
+                            width: 240px;
+                            height: 56px;
+                            background: #141824;
+                            border-radius: 8px;
+                            border-width: 1.5px;
+                            border-color: #00F5D4;
+
+                            Text {
+                                text: root.sas-code;
+                                color: #00F5D4;
+                                font-size: 28px;
+                                font-weight: 900;
+                                letter-spacing: 5px;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+                        }
+
+                        Rectangle {
+                            width: 160px;
+                            height: 38px;
+                            background: #00F5D4;
+                            border-radius: 6px;
+
+                            Text {
+                                text: "CONFIRMER IDENTIQUE";
+                                color: #07080A;
+                                font-size: 11px;
+                                font-weight: 800;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+                            TouchArea { clicked => { root.confirm-sas(); } }
+                        }
+                    }
+
+                    // Preview Card (Packet 0 BlurHash)
+                    if root.current-state == "RECEPTION" : Rectangle {
+                        width: 380px;
+                        height: 150px;
+                        background: #141824;
+                        border-radius: 10px;
+                        border-width: 1px;
+                        border-color: #00F5D4;
+
+                        VerticalLayout {
+                            padding: 16px;
+                            spacing: 8px;
+
+                            Text {
+                                text: "Aperçu : " + root.preview-filename;
+                                color: #FFFFFF;
+                                font-size: 14px;
+                                font-weight: 800;
+                            }
+                            Text {
+                                text: "Taille : " + root.preview-filesize + " • Estimation : " + root.estimated-duration;
+                                color: #A0A5B5;
+                                font-size: 12px;
+                            }
+                            Text {
+                                text: "BlurHash : " + root.preview-blurhash;
+                                color: #00F5D4;
+                                font-size: 11px;
+                            }
+
+                            HorizontalLayout {
+                                spacing: 14px;
+                                alignment: center;
+
+                                Rectangle {
+                                    width: 110px;
+                                    height: 34px;
+                                    background: #00F5D4;
+                                    border-radius: 6px;
+                                    Text { text: "ACCEPTER"; color: #07080a; font-size: 11px; font-weight: 800; horizontal-alignment: center; vertical-alignment: center; }
+                                    TouchArea { clicked => { root.accept-preview(); } }
+                                }
+                                Rectangle {
+                                    width: 110px;
+                                    height: 34px;
+                                    background: #FF5C5C;
+                                    border-radius: 6px;
+                                    Text { text: "REFUSER"; color: #FFFFFF; font-size: 11px; font-weight: 800; horizontal-alignment: center; vertical-alignment: center; }
+                                    TouchArea { clicked => { root.reject-preview(); } }
+                                }
+                            }
+                        }
+                    }
+
+                    // Progress Bar
+                    if root.current-state == "ENVOI" || root.current-state == "RECEPTION" : VerticalLayout {
+                        alignment: center;
+                        spacing: 8px;
+                        width: 380px;
+
+                        Rectangle {
+                            height: 10px;
+                            background: #18202f;
+                            border-radius: 5px;
+
+                            Rectangle {
+                                x: 0;
+                                width: parent.width * root.transfer-progress;
+                                height: parent.height;
+                                background: #00F5D4;
+                                border-radius: 5px;
+                            }
+                        }
+
+                        Text {
+                            text: "Temps restant estimé : " + root.estimated-duration;
+                            color: #A0A5B5;
+                            font-size: 12px;
+                            horizontal-alignment: center;
+                        }
+                    }
+                }
+
+                // =============================================================
+                // VIEW D: HUB 10 PROTOCOLES & 50 DÉPÔTS
+                // =============================================================
+                if root.current-view == "PROTOCOLES" : VerticalLayout {
+                    spacing: 12px;
+
+                    Text {
+                        text: "Architecture Unifiée P2P Multi-Canaux & Registre Natif";
+                        color: #00F5D4;
+                        font-size: 14px;
+                        font-weight: 800;
+                    }
+
+                    HorizontalLayout {
+                        spacing: 8px;
+                        Rectangle { height: 40px; background: #141824; border-radius: 6px; border-width: 0.5px; border-color: #00F5D4; Text { text: "1. Acoustic Air-Gap"; font-size: 10px; font-weight: 800; color: #00F5D4; horizontal-alignment: center; vertical-alignment: center; } }
+                        Rectangle { height: 40px; background: #141824; border-radius: 6px; border-width: 0.5px; border-color: #ffffff20; Text { text: "2. LocalSend v2"; font-size: 10px; font-weight: 700; color: #FFFFFF; horizontal-alignment: center; vertical-alignment: center; } }
+                        Rectangle { height: 40px; background: #141824; border-radius: 6px; border-width: 0.5px; border-color: #ffffff20; Text { text: "3. OpenDrop AWDL"; font-size: 10px; font-weight: 700; color: #FFFFFF; horizontal-alignment: center; vertical-alignment: center; } }
+                        Rectangle { height: 40px; background: #141824; border-radius: 6px; border-width: 0.5px; border-color: #ffffff20; Text { text: "4. WebTorrent"; font-size: 10px; font-weight: 700; color: #FFFFFF; horizontal-alignment: center; vertical-alignment: center; } }
+                        Rectangle { height: 40px; background: #141824; border-radius: 6px; border-width: 0.5px; border-color: #ffffff20; Text { text: "5. PairDrop WebRTC"; font-size: 10px; font-weight: 700; color: #FFFFFF; horizontal-alignment: center; vertical-alignment: center; } }
+                    }
+
+                    Rectangle {
+                        height: 160px;
+                        background: #0b0e14;
+                        border-radius: 8px;
+                        border-width: 0.5px;
+                        border-color: #ffffff15;
+
+                        VerticalLayout {
+                            padding: 14px;
+                            spacing: 8px;
+
+                            Text {
+                                text: "Registre des 50 Dépôts Natifs Clés (Audio, DSP, Crypto, UI, Physique) :";
+                                color: #A0A5B5;
+                                font-size: 12px;
+                                font-weight: 700;
+                            }
+                            Text {
+                                text: "• ggwave (MIT) - Base modem Phase 1 • cpal (Apache 2.0) - I/O 48 kHz mono\n• x25519-dalek & chacha20poly1305 - Chiffrement AEAD authentifié\n• reed-solomon-erasure (MIT) - Codage d'effacement broadcast 30-50%\n• blurhash (MIT) - Aperçu Paquet 0 • slint & rapier2d - UI GPU & collisions 60 FPS";
+                                color: #FFFFFF;
+                                font-size: 11px;
+                            }
+                        }
+                    }
+                }
+
+                // =============================================================
+                // VIEW E: MAILLAGE MESH ACOUSTIQUE
+                // =============================================================
+                if root.current-view == "MESH" : VerticalLayout {
+                    spacing: 14px;
+
+                    Text {
+                        text: "Topologie Réseau Maillé Acoustique & Routage AODV";
+                        color: #00F5D4;
+                        font-size: 15px;
+                        font-weight: 800;
+                    }
+
+                    HorizontalLayout {
+                        spacing: 12px;
+
+                        Rectangle {
+                            background: #141824;
+                            border-radius: 8px;
+                            border-width: 0.5px;
+                            border-color: #00F5D460;
+                            height: 70px;
+                            VerticalLayout {
+                                alignment: center;
+                                padding: 10px;
+                                Text { text: "VOISINS ACTIFS"; font-size: 10px; font-weight: 800; color: #A0A5B5; }
+                                Text { text: "" + root.mesh-neighbors-count + " Nœuds à portée"; font-size: 14px; font-weight: 900; color: #00F5D4; }
+                            }
+                        }
+
+                        Rectangle {
+                            background: #141824;
+                            border-radius: 8px;
+                            border-width: 0.5px;
+                            border-color: #38bdf860;
+                            height: 70px;
+                            VerticalLayout {
+                                alignment: center;
+                                padding: 10px;
+                                Text { text: "MEILLEUR RELAIS SÉLECTIONNÉ"; font-size: 10px; font-weight: 800; color: #A0A5B5; }
+                                Text { text: root.mesh-best-relay; font-size: 13px; font-weight: 800; color: #38bdf8; }
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        height: 90px;
+                        background: #0b0e14;
+                        border-radius: 8px;
+                        border-width: 0.5px;
+                        border-color: #ffffff20;
+                        VerticalLayout {
+                            padding: 12px;
+                            spacing: 6px;
+                            Text { text: "CHEMIN MULTI-SAUTS AODV DYNAMIQUE :"; font-size: 11px; font-weight: 800; color: #A0A5B5; }
+                            Text { text: root.mesh-route-hops; font-size: 14px; font-weight: 900; color: #FFFFFF; }
+                            Text { text: "Store-and-Forward actif • TTL: 5 • Déduplication automatique"; font-size: 10px; color: #00F5D4aa; }
+                        }
+                    }
+                }
+
+                // =============================================================
+                // VIEW F: RELAIS SATELLITE ORBITAL (SOR)
+                // =============================================================
+                if root.current-view == "SATELLITE" : VerticalLayout {
+                    spacing: 14px;
+
+                    Text {
+                        text: "SoundDrop Orbital Relay (SOR) — Zéro Couverture Rurale";
+                        color: #00F5D4;
+                        font-size: 15px;
+                        font-weight: 800;
+                    }
+
+                    HorizontalLayout {
+                        spacing: 12px;
+
+                        Rectangle {
+                            background: #141824;
+                            border-radius: 8px;
+                            border-width: 0.5px;
+                            border-color: #c084fc60;
+                            height: 70px;
+                            VerticalLayout {
+                                alignment: center;
+                                padding: 10px;
+                                Text { text: "FOURNISSEUR MATÉRIEL"; font-size: 10px; font-weight: 800; color: #A0A5B5; }
+                                Text { text: root.satellite-provider-name; font-size: 13px; font-weight: 800; color: #c084fc; }
+                            }
+                        }
+
+                        Rectangle {
+                            background: #141824;
+                            border-radius: 8px;
+                            border-width: 0.5px;
+                            border-color: #FFB02060;
+                            height: 70px;
+                            VerticalLayout {
+                                alignment: center;
+                                padding: 10px;
+                                Text { text: "STATUT DU PASSAGE LEO"; font-size: 10px; font-weight: 800; color: #A0A5B5; }
+                                Text { text: root.satellite-status; font-size: 13px; font-weight: 800; color: #FFB020; }
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        height: 90px;
+                        background: #0b0e14;
+                        border-radius: 8px;
+                        border-width: 0.5px;
+                        border-color: #ffffff20;
+                        VerticalLayout {
+                            padding: 12px;
+                            spacing: 6px;
+                            Text { text: "FILE D'ATTENTE STORE-AND-FORWARD ORBITALE :"; font-size: 11px; font-weight: 800; color: #A0A5B5; }
+                            Text { text: "" + root.satellite-queued-msgs + " message chiffré en attente d'élévation orbitale"; font-size: 13px; font-weight: 700; color: #FFFFFF; }
+                            Text { text: "Compression vocale Codec 2 active (450 bps / 56 o/s) • E2EE ChaCha20-Poly1305"; font-size: 10px; color: #00F5D4aa; }
+                        }
+                    }
+                }
+            }
+        }
+
+        // =====================================================================
+        // 4. FOOTER STATUS & STATE SWITCHER BAR
+        // =====================================================================
+        Rectangle {
+            height: 44px;
+            background: #0F1117;
+            border-radius: 8px;
+            border-width: 0.5px;
+            border-color: #ffffff20;
+
+            HorizontalLayout {
+                padding-left: 16px;
+                padding-right: 16px;
+                alignment: space-between;
+
+                Text {
+                    text: "Bruit ambiant : " + root.ambient-noise-level + " dB • Physique Rapier2D active • 60 FPS";
+                    color: #A0A5B5;
+                    font-size: 11px;
+                    vertical-alignment: center;
+                }
+
+                HorizontalLayout {
+                    spacing: 6px;
+                    alignment: center;
+
+                    Rectangle { width: 56px; height: 26px; background: root.current-state == "INACTIF" ? #00F5D4 : #1a2234; border-radius: 4px; Text { text: "Inactif"; color: root.current-state == "INACTIF" ? #07080a : #FFFFFF; font-size: 10px; font-weight: 800; horizontal-alignment: center; vertical-alignment: center; } TouchArea { clicked => { root.switch-state("INACTIF"); } } }
+                    Rectangle { width: 56px; height: 26px; background: root.current-state == "ECOUTE" ? #00F5D4 : #1a2234; border-radius: 4px; Text { text: "Écoute"; color: root.current-state == "ECOUTE" ? #07080a : #FFFFFF; font-size: 10px; font-weight: 800; horizontal-alignment: center; vertical-alignment: center; } TouchArea { clicked => { root.switch-state("ECOUTE"); } } }
+                    Rectangle { width: 56px; height: 26px; background: root.current-state == "SAS" ? #00F5D4 : #1a2234; border-radius: 4px; Text { text: "SAS"; color: root.current-state == "SAS" ? #07080a : #FFFFFF; font-size: 10px; font-weight: 800; horizontal-alignment: center; vertical-alignment: center; } TouchArea { clicked => { root.switch-state("SAS"); } } }
+                    Rectangle { width: 56px; height: 26px; background: root.current-state == "ENVOI" ? #00F5D4 : #1a2234; border-radius: 4px; Text { text: "Envoi"; color: root.current-state == "ENVOI" ? #07080a : #FFFFFF; font-size: 10px; font-weight: 800; horizontal-alignment: center; vertical-alignment: center; } TouchArea { clicked => { root.switch-state("ENVOI"); } } }
+                    Rectangle { width: 56px; height: 26px; background: root.current-state == "RECEPTION" ? #00F5D4 : #1a2234; border-radius: 4px; Text { text: "Récept"; color: root.current-state == "RECEPTION" ? #07080a : #FFFFFF; font-size: 10px; font-weight: 800; horizontal-alignment: center; vertical-alignment: center; } TouchArea { clicked => { root.switch-state("RECEPTION"); } } }
+                    Rectangle { width: 56px; height: 26px; background: root.current-state == "TERMINE" ? #00F5D4 : #1a2234; border-radius: 4px; Text { text: "Terminé"; color: root.current-state == "TERMINE" ? #07080a : #FFFFFF; font-size: 10px; font-weight: 800; horizontal-alignment: center; vertical-alignment: center; } TouchArea { clicked => { root.switch-state("TERMINE"); } } }
+                    Rectangle { width: 56px; height: 26px; background: root.current-state == "ERREUR" ? #FF5C5C : #1a2234; border-radius: 4px; Text { text: "Erreur"; color: #FFFFFF; font-size: 10px; font-weight: 800; horizontal-alignment: center; vertical-alignment: center; } TouchArea { clicked => { root.switch-state("ERREUR"); } } }
+                }
+            }
+        }
+    }
+}

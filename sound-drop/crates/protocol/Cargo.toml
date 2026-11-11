@@ -1,0 +1,11 @@
+[package]
+name = "sounddrop-protocol"
+version = "0.2.0"
+edition = "2021"
+
+[dependencies]
+sounddrop-crypto = { path = "../crypto" }
+sounddrop-payload = { path = "../payload" }
+reed-solomon-erasure = "6.0"
+crc = "3.2"
+thiserror = "1.0"

@@ -1,0 +1,11 @@
+[package]
+name = "sounddrop-core-rs"
+version = "6.0.0"
+edition = "2021"
+description = "Native Rust & WebAssembly DSP (Goertzel 4-FSK) and SHA-256 Syncthing Block Engine for SoundDrop"
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]

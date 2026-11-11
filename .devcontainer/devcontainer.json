@@ -1,0 +1,35 @@
+{
+  "name": "SoundDrop Studio — Acoustic Air-Gap & Mesh",
+  "image": "mcr.microsoft.com/devcontainers/rust:1-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20"
+    }
+  },
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": {
+      "label": "SoundDrop Studio Web",
+      "onAutoForward": "openBrowser",
+      "requireLocalPort": false
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "bradlc.vscode-tailwindcss",
+        "rust-lang.rust-analyzer",
+        "esbenp.prettier-vscode",
+        "Slint.slint",
+        "eamodio.gitlens"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "editor.formatOnSave": true
+      }
+    }
+  },
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y libasound2-dev libudev-dev pkg-config cmake && npm install",
+  "postAttachCommand": "npm run dev"
+}

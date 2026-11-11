@@ -1,0 +1,64 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Sound Drop CLI Control Utility
+# Manages profiles, triggers loopback tests, and communicates with daemon
+
+require 'optparse'
+require 'socket'
+require 'json'
+
+options = {
+  command: 'status',
+  profile: 'audible',
+  port: 9444
+}
+
+OptionParser.new do |opts|
+  opts.banner = 'Usage: sounddrop_ctl [options] <command>'
+
+  opts.on('-p', '--profile PROFILE', %w[audible ultrasonic whisper], 'Select acoustic band') do |p|
+    options[:profile] = p
+  end
+
+  opts.on('--port PORT', Integer, 'Daemon IPC port (default: 9444)') do |port|
+    options[:port] = port
+  end
+
+  opts.on('-h', '--help', 'Prints this help') do
+    puts opts
+    exit
+  end
+end.parse!
+
+options[:command] = ARGV[0] if ARGV[0]
+
+def send_daemon_command(port, cmd_type, payload = {})
+  sock = TCPSocket.new('127.0.0.1', port)
+  msg = {
+    type: cmd_type,
+    payload: payload,
+    timestamp: (Time.now.to_f * 1000).to_i
+  }.to_json
+
+  sock.puts(msg)
+  sock.close
+  puts "[sounddrop_ctl] Sent #{cmd_type} to daemon on port #{port}"
+rescue StandardError => e
+  puts "[sounddrop_ctl] Notice: Daemon on 127.0.0.1:#{port} is not currently running (#{e.message})"
+end
+
+case options[:command]
+when 'emit'
+  puts "[sounddrop_ctl] Emitting acoustic pairing ping on profile: #{options[:profile]}"
+  send_daemon_command(options[:port], 'COMMAND_START_EMIT', { profile: options[:profile] })
+when 'stop'
+  puts '[sounddrop_ctl] Halting transmission...'
+  send_daemon_command(options[:port], 'COMMAND_STOP_EMIT')
+when 'test'
+  puts '[sounddrop_ctl] Initiating Acoustic Proximity Loopback Self-Test...'
+  system('python ../payload-agent/tests/test_payload.py')
+else
+  puts "[sounddrop_ctl] Active Profile: #{options[:profile]} | Daemon Port: #{options[:port]}"
+  puts 'Available commands: emit, stop, test'
+end

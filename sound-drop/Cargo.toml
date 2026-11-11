@@ -1,0 +1,20 @@
+[workspace]
+members = [
+    "crates/audio-io",
+    "crates/modem",
+    "crates/protocol",
+    "crates/crypto",
+    "crates/payload",
+    "crates/orbital",
+    "crates/mesh",
+    "crates/bridge",
+    "app",
+]
+resolver = "2"
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = true

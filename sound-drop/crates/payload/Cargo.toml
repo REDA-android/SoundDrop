@@ -1,0 +1,10 @@
+[package]
+name = "sounddrop-payload"
+version = "0.2.0"
+edition = "2021"
+
+[dependencies]
+zstd = "0.13"
+blurhash = "0.2"
+image = { version = "0.25", default-features = false, features = ["png", "jpeg"] }
+thiserror = "1.0"

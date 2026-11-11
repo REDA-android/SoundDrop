@@ -1,0 +1,8 @@
+.next/
+node_modules/
+sound-drop/
+sound-drop-native/
+external-repos/
+native/
+.git/
+*.log

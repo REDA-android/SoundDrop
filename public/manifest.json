@@ -1,0 +1,22 @@
+{
+  "name": "Sound Drop - Acoustic & Ultrasonic P2P AirDrop",
+  "short_name": "SoundDrop",
+  "description": "100% Offline Acoustic & Ultrasonic Data-Over-Sound File & Text Transfer",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#07090E",
+  "theme_color": "#06B6D4",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
