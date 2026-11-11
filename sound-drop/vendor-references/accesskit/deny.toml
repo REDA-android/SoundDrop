@@ -1,0 +1,66 @@
+[graph]
+# Note: running just `cargo deny check` without a `--target` can result in
+# false positives due to https://github.com/EmbarkStudios/cargo-deny/issues/324
+targets = [
+  { triple = "aarch64-apple-darwin" },
+  { triple = "aarch64-linux-android" },
+  { triple = "i686-pc-windows-gnu" },
+  { triple = "i686-pc-windows-msvc" },
+  { triple = "x86_64-pc-windows-gnu" },
+  { triple = "x86_64-pc-windows-msvc" },
+  { triple = "x86_64-unknown-linux-gnu" },
+]
+all-features = true
+exclude = ["example_common"]
+
+[advisories]
+db-path = "~/.cargo/advisory-db"
+db-urls = ["https://github.com/rustsec/advisory-db"]
+ignore = [
+    { id = "RUSTSEC-2026-0192", reason = "ttf-parser is unmaintained; pulled in by sctk-adwaita via ab_glyph/owned_ttf_parser; only a dev dependency" },
+    { id = "RUSTSEC-2026-0370", reason = "zvariant is unmaintained and merged into zbus 6; we can't upgrade to zbus 6 yet" },
+    { id = "RUSTSEC-2026-0371", reason = "zbus_names is unmaintained and merged into zbus 6; we can't upgrade to zbus 6 yet" },
+    { id = "RUSTSEC-2026-0372", reason = "zvariant_derive is unmaintained and merged into zbus 6; we can't upgrade to zbus 6 yet" },
+]
+
+[licenses]
+allow = [
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "MIT",
+    "Zlib",
+]
+confidence-threshold = 0.8
+exceptions = [
+    { name = "unicode-ident", allow = [
+        "Unicode-DFS-2016",
+    ] },
+]
+
+[bans]
+multiple-versions = "deny"
+wildcards = "deny"
+highlight = "all"
+allow = []
+deny = []
+skip = [
+    "bitflags:<2",
+    "linux-raw-sys:<0.12",
+    "raw-window-handle:<0.6",
+    "rustix:<1",
+    "syn:<3",
+    "windows-sys:<0.61",
+    "windows-targets:<0.52",
+    "windows_i686_gnu:<0.52",
+    "windows_i686_msvc:<0.52",
+    "windows_x86_64_gnu:<0.52",
+    "windows_x86_64_msvc:<0.52",
+]
+skip-tree = []
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"

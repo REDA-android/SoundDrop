@@ -1,0 +1,21 @@
+[package]
+name = "sounddrop-app"
+version = "0.2.0"
+edition = "2021"
+
+[dependencies]
+sounddrop-audio-io = { path = "../crates/audio-io" }
+sounddrop-modem = { path = "../crates/modem" }
+sounddrop-protocol = { path = "../crates/protocol" }
+sounddrop-crypto = { path = "../crates/crypto" }
+sounddrop-payload = { path = "../crates/payload" }
+sounddrop-mesh = { path = "../crates/mesh" }
+sounddrop-orbital = { path = "../crates/orbital" }
+slint = "1.18"
+rapier2d = "0.22"
+rodio = "0.20"
+fundsp = "0.18"
+
+[build-dependencies]
+slint-build = "1.18"
+

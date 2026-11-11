@@ -1,0 +1,79 @@
+openapi: 3.1.0
+info:
+  title: SoundDrop v5.0 Multi-Protocol P2P & Signaling API
+  version: 5.0.0
+  description: >
+    REST & Server-Sent Events (SSE) API for WebRTC signaling, OpenDrop (Apple AirDrop OWL compatible HTTP relay),
+    and LocalSend v2.1 peer discovery and binary payload exchange.
+paths:
+  /api/health:
+    get:
+      summary: System health and protocol status
+      responses:
+        '200':
+          description: Healthy status response
+  /api/signal/create:
+    post:
+      summary: Create or update a WebRTC signaling room with an SDP offer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [roomId, offer]
+              properties:
+                roomId:
+                  type: string
+                offer:
+                  type: object
+      responses:
+        '200':
+          description: Room registered
+  /api/signal/join:
+    get:
+      summary: Fetch room SDP offer, answer, and queued ICE candidates
+      parameters:
+        - in: query
+          name: roomId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Room signaling state
+    post:
+      summary: Submit SDP answer or ICE candidate (race-free room auto-initialization)
+      responses:
+        '200':
+          description: Signal state updated
+  /api/signal/clipboard:
+    get:
+      summary: Retrieve latest room clipboard entries
+    post:
+      summary: Publish real-time clipboard text to a room
+  /api/opendrop/discover:
+    get:
+      summary: Discover active OpenDrop / OWL peers
+    post:
+      summary: Register or heartbeat an OpenDrop peer
+  /api/opendrop/ask:
+    get:
+      summary: Poll incoming OpenDrop transfer requests for a receiver
+    post:
+      summary: Propose a file transfer to an OpenDrop peer
+  /api/opendrop/upload:
+    get:
+      summary: Download a completed OpenDrop transfer payload by transferId
+    post:
+      summary: Upload binary file chunks (`Content-Range`) for an OpenDrop transfer
+  /api/localsend/v2/info:
+    get:
+      summary: Discover active LocalSend v2.1 peers and local node metadata
+    post:
+      summary: Announce LocalSend v2.1 peer presence
+  /api/localsend/v2/upload:
+    get:
+      summary: List or download received LocalSend v2.1 payloads
+    post:
+      summary: Upload a binary payload to a LocalSend v2.1 target peer

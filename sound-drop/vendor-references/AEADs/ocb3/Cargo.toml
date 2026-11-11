@@ -1,0 +1,41 @@
+[package]
+name = "ocb3"
+version = "0.2.0"
+description = """
+Pure Rust implementation of the Offset Codebook Mode v3 (OCB3) Authenticated Encryption with
+Associated Data (AEAD) Cipher as described in RFC7253
+"""
+authors = ["RustCrypto Developers"]
+edition = "2024"
+license = "Apache-2.0 OR MIT"
+readme = "README.md"
+documentation = "https://docs.rs/ocb3"
+repository = "https://github.com/RustCrypto/AEADs"
+keywords = ["aead", "encryption", "ocb"]
+categories = ["cryptography", "no-std"]
+rust-version = "1.85"
+
+[dependencies]
+aead = { version = "0.6", default-features = false }
+cipher = "0.5"
+dbl = "0.5"
+ctutils = "0.4"
+
+[dev-dependencies]
+aead = { version = "0.6", features = ["dev"], default-features = false }
+aes = { version = "0.9", default-features = false }
+hex-literal = "1"
+
+[features]
+default = ["alloc", "getrandom"]
+alloc = ["aead/alloc"]
+arrayvec = ["aead/arrayvec"]
+bytes = ["aead/bytes"]
+getrandom = ["aead/getrandom"]
+rand_core = ["aead/rand_core"]
+
+[lints]
+workspace = true
+
+[package.metadata.docs.rs]
+all-features = true

@@ -1,0 +1,22 @@
+[package]
+name = "sound-drop-core-dsp"
+version = "2.0.0"
+edition = "2021"
+authors = ["Sound Drop Systems Architect"]
+description = "High-performance zero-allocation SIMD acoustic DSP engine (C++20 & Rust) for Sound Drop"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+libc = "0.2"
+
+[build-dependencies]
+cc = "1.0"
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+overflow-checks = false

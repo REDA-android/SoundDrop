@@ -22,4 +22,17 @@ Thumbs.db
 build/
 dist/
 
+# Node & Next.js web artifacts
+node_modules/
+.next/
+out/
+.env*.local
+*.log
+.npm/
+.cache/
+tsconfig.tsbuildinfo
+.vercel
+external-repos/
+
+
 

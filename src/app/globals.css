@@ -1,0 +1,158 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --background: #0A0A0C;
+  --foreground: #F4F4F6;
+  --surface: #121216;
+  --surface-elevated: #18181E;
+  --border-hairline: rgba(255, 255, 255, 0.09);
+  --border-highlight: rgba(255, 255, 255, 0.18);
+  --signal-orange: #FF5500;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  min-height: 100vh;
+  overflow-x: hidden;
+  letter-spacing: -0.011em;
+}
+
+/* Visually hidden utility (accessible to screen readers, revealed on focus) */
+.visually-hidden:where(:not(:focus-within, :active)) {
+  position: absolute !important;
+  clip-path: inset(50%) !important;
+  overflow: hidden !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  white-space: nowrap !important;
+}
+
+/* High-contrast keyboard focus indicator (WCAG 2.4.7 & 1.4.11) */
+:where(a:any-link, button, input, select, textarea, [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 2px solid #FF5500;
+  outline-offset: 2px;
+}
+
+/* Tactile Hardware Chassis Surface */
+.hardware-chassis {
+  background: linear-gradient(180deg, #16161C 0%, #101015 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 24px 48px -12px rgba(0, 0, 0, 0.78),
+    0 1px 0 0 rgba(255, 255, 255, 0.08) inset;
+}
+
+/* Recessed OLED Display Well */
+.oled-screen {
+  background: #070709;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    inset 0 2px 8px rgba(0, 0, 0, 0.85),
+    0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Tactile Hardware Button */
+.tactile-btn-primary {
+  background: linear-gradient(180deg, #FF6214 0%, #E04600 100%);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.28) inset,
+    0 4px 12px rgba(255, 85, 0, 0.25),
+    0 1px 2px rgba(0, 0, 0, 0.5);
+  transition: all 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tactile-btn-primary:hover:not(:disabled) {
+  background: linear-gradient(180deg, #FF712B 0%, #F54D00 100%);
+  transform: translateY(-0.5px);
+}
+
+.tactile-btn-primary:active:not(:disabled) {
+  transform: translateY(0.5px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.6) inset;
+}
+
+.tactile-btn-surface {
+  background: linear-gradient(180deg, #22222A 0%, #191920 100%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #F4F4F6;
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.06) inset,
+    0 2px 4px rgba(0, 0, 0, 0.4);
+  transition: all 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tactile-btn-surface:hover:not(:disabled) {
+  background: linear-gradient(180deg, #2A2A34 0%, #202029 100%);
+  border-color: rgba(255, 255, 255, 0.24);
+}
+
+@media (forced-colors: active) {
+  .hardware-chassis,
+  .oled-screen,
+  .tactile-btn-primary,
+  .tactile-btn-surface {
+    border: 1px solid CanvasText;
+  }
+}
+
+/* Custom Subtle Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0A0A0C;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2E2E38;
+  border-radius: 9999px;
+}
+
+
+/* Section A: Sub-Pixel Hairline & Metalforge Beveled Chassis Utilities */
+.hairline-border {
+  border-width: 1px;
+  border-color: rgba(255, 255, 255, 0.14);
+}
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .hairline-border {
+    border-width: 0.5px;
+  }
+}
+
+.metalforge-node {
+  background: linear-gradient(145deg, rgba(24, 30, 44, 0.92), rgba(11, 14, 22, 0.96));
+  border-top: 0.5px solid rgba(255, 255, 255, 0.18);
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.65);
+  border-left: 0.5px solid rgba(255, 255, 255, 0.10);
+  border-right: 0.5px solid rgba(255, 255, 255, 0.10);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 12px 32px -8px rgba(0, 0, 0, 0.72);
+}
+
+.koboyo-title {
+  letter-spacing: -0.025em;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+.koboyo-telemetry {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum", "zero";
+}

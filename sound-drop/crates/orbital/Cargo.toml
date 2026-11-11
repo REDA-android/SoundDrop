@@ -1,0 +1,13 @@
+[package]
+name = "sounddrop-orbital"
+version = "0.2.0"
+edition = "2021"
+description = "SoundDrop Orbital Relay (SOR) — Satellite-assisted small packet & compressed voice communication"
+
+[dependencies]
+sounddrop-crypto = { path = "../crypto" }
+sounddrop-protocol = { path = "../protocol" }
+crc = "3.2"
+thiserror = "1.0"
+
+[dev-dependencies]

@@ -1,0 +1,39 @@
+[package]
+name = "ascon-aead128"
+version = "0.1.1"
+description = "Implementation of the Ascon-AEAD128 authenticated encryption scheme"
+authors = ["RustCrypto Developers"]
+edition = "2024"
+license = "Apache-2.0 OR MIT"
+readme = "README.md"
+repository = "https://github.com/RustCrypto/AEADs"
+keywords = ["AEAD", "ascon", "encryption"]
+categories = ["cryptography", "no-std"]
+rust-version = "1.85"
+
+[dependencies]
+aead = { version = "0.6", default-features = false }
+ascon = "0.5"
+ctutils = "0.4"
+
+# optional dependencies
+zeroize = { version = "1.8", optional = true, default-features = false, features = ["derive"] }
+
+[dev-dependencies]
+aead = { version = "0.6", features = ["dev"] }
+
+[features]
+default = ["alloc", "getrandom"]
+alloc = ["aead/alloc"]
+arrayvec = ["aead/arrayvec"]
+bytes = ["aead/bytes"]
+getrandom = ["aead/getrandom"]
+rand_core = ["aead/rand_core"]
+zeroize = ["dep:zeroize"]
+
+[lints]
+workspace = true
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

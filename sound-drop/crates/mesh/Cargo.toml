@@ -1,0 +1,13 @@
+[package]
+name = "sounddrop-mesh"
+version = "0.2.0"
+edition = "2021"
+description = "SoundDrop Acoustic Mesh Network Coordinator & Dynamic Routing Subsystem"
+
+[dependencies]
+sounddrop-crypto = { path = "../crypto" }
+sounddrop-protocol = { path = "../protocol" }
+crc = "3.2"
+thiserror = "1.0"
+
+[dev-dependencies]

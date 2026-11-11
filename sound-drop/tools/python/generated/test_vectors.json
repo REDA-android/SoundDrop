@@ -1,0 +1,47 @@
+{
+  "sample_rate": 48000,
+  "profiles": {
+    "Robuste": {
+      "Ts": 0.048,
+      "samples": 2304,
+      "step": 62.5,
+      "base": 1500.0
+    },
+    "Normal": {
+      "Ts": 0.024,
+      "samples": 1152,
+      "step": 125.0,
+      "base": 1500.0
+    },
+    "Rapide": {
+      "Ts": 0.012,
+      "samples": 576,
+      "step": 250.0,
+      "base": 1500.0
+    },
+    "Ultra": {
+      "Ts": 0.024,
+      "samples": 1152,
+      "step": 125.0,
+      "base": 17500.0
+    }
+  },
+  "chirp": {
+    "duration_ms": 50,
+    "samples_count": 2400,
+    "f_start": 1500.0,
+    "f_end": 5500.0
+  },
+  "snr_test_cases": [
+    30,
+    20,
+    15,
+    10,
+    5
+  ],
+  "clock_drift_ppm_tested": [
+    50.0,
+    75.0,
+    100.0
+  ]
+}

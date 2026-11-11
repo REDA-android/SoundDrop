@@ -1,0 +1,81 @@
+/* ==============================================================================
+   Sound Drop Next-Gen Desktop Aesthetics System
+   Koboyo Typography + Hairline 0.5px Sub-Pixels + Metalforge Metallic Skeuomorphism
+   ============================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+:root {
+  --obsidian-base: #07090e;
+  --obsidian-surface: #0b0e17;
+  --obsidian-elevated: #111624;
+  
+  --hairline-border: rgba(255, 255, 255, 0.07);
+  --hairline-highlight: rgba(255, 255, 255, 0.14);
+  --hairline-cyan: rgba(6, 182, 212, 0.45);
+  --hairline-emerald: rgba(16, 185, 129, 0.45);
+
+  --metal-titanium-light: linear-gradient(135deg, #2a3040 0%, #151922 50%, #0d1017 100%);
+  --metal-titanium-active: linear-gradient(135deg, #090c12 0%, #131822 50%, #1c2230 100%);
+  --metal-bevel-top: inset 0 1px 0 0 rgba(255, 255, 255, 0.22);
+  --metal-bevel-bottom: inset 0 -1px 0 0 rgba(0, 0, 0, 0.7);
+  --metal-sunken-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.6), 0 1px 2px rgba(255, 255, 255, 0.05);
+
+  --font-koboyo-head: 'Space Grotesk', -apple-system, sans-serif;
+  --font-koboyo-mono: 'JetBrains Mono', monospace;
+}
+
+/* Hairline 0.5px Surgical Borders */
+.hairline-border {
+  border: 0.5px solid var(--hairline-border);
+}
+
+.hairline-border-cyan {
+  border: 0.5px solid var(--hairline-cyan);
+}
+
+.hairline-border-emerald {
+  border: 0.5px solid var(--hairline-emerald);
+}
+
+/* Metalforge Skeuomorphic Brushed Titanium Finish */
+.metalforge-node {
+  background: var(--metal-titanium-light);
+  box-shadow: 
+    var(--metal-bevel-top),
+    var(--metal-bevel-bottom),
+    0 12px 36px -4px rgba(0, 0, 0, 0.7),
+    0 0 24px rgba(6, 182, 212, 0.15);
+}
+
+.metalforge-node-active {
+  background: var(--metal-titanium-active);
+  box-shadow: 
+    var(--metal-sunken-shadow),
+    0 0 35px rgba(16, 185, 129, 0.35);
+}
+
+/* Koboyo Editorial Typography */
+.koboyo-title {
+  font-family: var(--font-koboyo-head);
+  letter-spacing: -0.03em;
+  font-weight: 700;
+}
+
+.koboyo-telemetry {
+  font-family: var(--font-koboyo-mono);
+  font-feature-settings: "tnum" 1, "zero" 1;
+}
+
+/* Drawably Fluid Hand-Drawn Acoustic Waveform Stroke */
+.drawably-accent {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 6 8;
+  animation: drawablyPulse 3s linear infinite;
+}
+
+@keyframes drawablyPulse {
+  0% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: 28; }
+}
