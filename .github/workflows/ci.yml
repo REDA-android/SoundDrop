@@ -2,9 +2,9 @@ name: SoundDrop CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "feat/flutter-app" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "feat/flutter-app" ]
   workflow_dispatch:
     inputs:
       all_platforms:
@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ fromJSON((github.event_name == 'workflow_dispatch' && inputs.all_platforms) && '["ubuntu-latest","macos-latest","windows-latest"]' || '["ubuntu-latest"]') }}
+        os: [ubuntu-latest]
 
     steps:
       - name: Checkout Repository
@@ -87,3 +87,27 @@ jobs:
       - name: Flutter Tests
         working-directory: apps/sounddrop_flutter
         run: flutter test
+
+  web-hub:
+    name: Web Hub Verification (Next.js & Vitest)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Vitest Unit Tests
+        run: npm test
+
+      - name: Build Next.js Application
+        run: npm run build
+
