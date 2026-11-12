@@ -4,13 +4,16 @@
 
 :root {
   color-scheme: dark;
-  --background: #0A0A0C;
-  --foreground: #F4F4F6;
-  --surface: #121216;
-  --surface-elevated: #18181E;
-  --border-hairline: rgba(255, 255, 255, 0.09);
-  --border-highlight: rgba(255, 255, 255, 0.18);
-  --signal-orange: #FF5500;
+  --background: #08090E;
+  --foreground: #F8FAFC;
+  --surface: #0F121A;
+  --surface-elevated: #161A26;
+  --border-hairline: rgba(255, 255, 255, 0.08);
+  --border-highlight: rgba(255, 255, 255, 0.16);
+  --signal-orange: #FF6A1F;
+  --signal-gold: #F59E0B;
+  --signal-cyan: #06B6D4;
+  --signal-emerald: #10B981;
 }
 
 * {
@@ -19,6 +22,12 @@
 
 body {
   background-color: var(--background);
+  background-image:
+    radial-gradient(at 10% 10%, rgba(255, 106, 31, 0.06) 0px, transparent 40%),
+    radial-gradient(at 90% 90%, rgba(6, 182, 212, 0.05) 0px, transparent 40%),
+    radial-gradient(at 50% 30%, rgba(16, 185, 129, 0.03) 0px, transparent 50%),
+    radial-gradient(at 50% 80%, rgba(15, 23, 42, 0.6) 0px, transparent 70%);
+  background-attachment: fixed;
   color: var(--foreground);
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   min-height: 100vh;
@@ -41,14 +50,25 @@ body {
 
 /* High-contrast keyboard focus indicator (WCAG 2.4.7 & 1.4.11) */
 :where(a:any-link, button, input, select, textarea, [tabindex]:not([tabindex="-1"])):focus-visible {
-  outline: 2px solid #FF5500;
+  outline: 2px solid #FF6A1F;
   outline-offset: 2px;
+}
+
+/* Luxury Glassmorphism Container */
+.glass-panel {
+  background: rgba(15, 18, 27, 0.75);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 24px 48px -12px rgba(0, 0, 0, 0.75),
+    0 1px 0 0 rgba(255, 255, 255, 0.08) inset;
 }
 
 /* Tactile Hardware Chassis Surface */
 .hardware-chassis {
-  background: linear-gradient(180deg, #16161C 0%, #101015 100%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, #161A26 0%, #0E1119 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow:
     0 24px 48px -12px rgba(0, 0, 0, 0.78),
     0 1px 0 0 rgba(255, 255, 255, 0.08) inset;
@@ -56,79 +76,88 @@ body {
 
 /* Recessed OLED Display Well */
 .oled-screen {
-  background: #070709;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #06070B;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow:
-    inset 0 2px 8px rgba(0, 0, 0, 0.85),
-    0 1px 0 rgba(255, 255, 255, 0.05);
+    inset 0 2px 10px rgba(0, 0, 0, 0.9),
+    0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
-/* Tactile Hardware Button */
-.tactile-btn-primary {
-  background: linear-gradient(180deg, #FF6214 0%, #E04600 100%);
+/* Elegant Primary Action Button */
+.btn-elegant-primary {
+  background: linear-gradient(135deg, #FF6A1F 0%, #E04800 100%);
   color: #FFFFFF;
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow:
-    0 1px 0 0 rgba(255, 255, 255, 0.28) inset,
-    0 4px 12px rgba(255, 85, 0, 0.25),
-    0 1px 2px rgba(0, 0, 0, 0.5);
-  transition: all 150ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.tactile-btn-primary:hover:not(:disabled) {
-  background: linear-gradient(180deg, #FF712B 0%, #F54D00 100%);
-  transform: translateY(-0.5px);
-}
-
-.tactile-btn-primary:active:not(:disabled) {
-  transform: translateY(0.5px);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.6) inset;
-}
-
-.tactile-btn-surface {
-  background: linear-gradient(180deg, #22222A 0%, #191920 100%);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  color: #F4F4F6;
-  box-shadow:
-    0 1px 0 0 rgba(255, 255, 255, 0.06) inset,
+    0 1px 0 0 rgba(255, 255, 255, 0.3) inset,
+    0 8px 24px -4px rgba(255, 106, 31, 0.38),
     0 2px 4px rgba(0, 0, 0, 0.4);
-  transition: all 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.tactile-btn-surface:hover:not(:disabled) {
-  background: linear-gradient(180deg, #2A2A34 0%, #202029 100%);
-  border-color: rgba(255, 255, 255, 0.24);
+.btn-elegant-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #FF7B38 0%, #F5520A 100%);
+  transform: translateY(-1px);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.4) inset,
+    0 12px 30px -4px rgba(255, 106, 31, 0.5),
+    0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.btn-elegant-primary:active:not(:disabled) {
+  transform: translateY(0.5px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5) inset;
+}
+
+/* Elegant Surface Action Button */
+.btn-elegant-surface {
+  background: linear-gradient(180deg, #1C202F 0%, #131622 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #F8FAFC;
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.08) inset,
+    0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-elegant-surface:hover:not(:disabled) {
+  background: linear-gradient(180deg, #252A3E 0%, #1A1F30 100%);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-0.5px);
 }
 
 @media (forced-colors: active) {
   .hardware-chassis,
   .oled-screen,
-  .tactile-btn-primary,
-  .tactile-btn-surface {
+  .btn-elegant-primary,
+  .btn-elegant-surface {
     border: 1px solid CanvasText;
   }
 }
 
 /* Custom Subtle Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0A0A0C;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2E2E38;
+  background: rgba(255, 255, 255, 0.14);
   border-radius: 9999px;
 }
 
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
 
-/* Section A: Sub-Pixel Hairline & Metalforge Beveled Chassis Utilities */
+/* Sub-Pixel Hairline Utilities */
 .hairline-border {
   border-width: 1px;
-  border-color: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
   .hairline-border {
@@ -137,14 +166,14 @@ body {
 }
 
 .metalforge-node {
-  background: linear-gradient(145deg, rgba(24, 30, 44, 0.92), rgba(11, 14, 22, 0.96));
-  border-top: 0.5px solid rgba(255, 255, 255, 0.18);
+  background: linear-gradient(145deg, rgba(22, 28, 42, 0.88), rgba(10, 13, 20, 0.94));
+  border-top: 0.5px solid rgba(255, 255, 255, 0.16);
   border-bottom: 0.5px solid rgba(0, 0, 0, 0.65);
-  border-left: 0.5px solid rgba(255, 255, 255, 0.10);
-  border-right: 0.5px solid rgba(255, 255, 255, 0.10);
+  border-left: 0.5px solid rgba(255, 255, 255, 0.09);
+  border-right: 0.5px solid rgba(255, 255, 255, 0.09);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    0 12px 32px -8px rgba(0, 0, 0, 0.72);
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 16px 36px -10px rgba(0, 0, 0, 0.7);
 }
 
 .koboyo-title {

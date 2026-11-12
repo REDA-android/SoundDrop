@@ -57,7 +57,7 @@ export async function createGgwaveModem(sampleRate = 48000): Promise<AcousticMod
       // Copie sûre des échantillons Float32 avec silence de tête (2048 = 42ms) et queue (10240 = 213ms)
       const numSamples = Math.floor(waveBytes.byteLength / 4);
       const leadIn = 2048;
-      const leadOut = 14336;
+      const leadOut = 20480;
       const rawTotal = leadIn + numSamples + leadOut;
       const paddedTotal = Math.ceil(rawTotal / frameSamples) * frameSamples;
       const out = new Float32Array(paddedTotal);

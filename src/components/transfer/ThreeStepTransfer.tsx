@@ -411,11 +411,15 @@ export function ThreeStepTransfer() {
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto flex flex-col gap-5 p-4 sm:p-6 bg-[#0E0E14] border border-white/10 rounded-2xl shadow-2xl text-[#E4E4E7]">
+    <div className="w-full max-w-3xl mx-auto flex flex-col gap-6 p-5 sm:p-7 glass-panel rounded-2xl relative overflow-hidden text-[#E4E4E7]">
+      {/* Halo lumineux d'ambiance */}
+      <div className="absolute -top-32 -left-32 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-32 -right-32 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
       {/* En-tête avec navigation d'étapes */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-[#FF5500]/15 border border-[#FF5500]/30 flex items-center justify-center text-[#FF5500]">
+      <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/[0.08] pb-5">
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-500/20 via-orange-500/10 to-transparent border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-lg shadow-amber-500/10">
             <Radio className="w-5 h-5 animate-pulse" />
           </div>
           <div>
@@ -423,14 +427,14 @@ export function ThreeStepTransfer() {
               SoundDrop Studio
               <StatusBadge capabilityId="acoustic-audible" />
             </h2>
-            <p className="text-xs text-[#A1A1AA]">
-              Transfert acoustique direct chiffré de bout en bout
+            <p className="text-xs text-neutral-400">
+              Transfert acoustique direct chiffré de bout en bout (AirGap)
             </p>
           </div>
         </div>
 
         {/* Indicateurs 1 - 2 - 3 */}
-        <div className="flex items-center gap-1.5 bg-[#14141E] p-1 rounded-xl border border-white/10 text-xs font-mono">
+        <div className="flex items-center gap-1.5 bg-[#0A0B10]/80 p-1.5 rounded-xl border border-white/[0.08] text-xs font-mono shadow-inner">
           {[
             { num: 1, label: 'Préparation' },
             { num: 2, label: 'Proximité & SAS' },
@@ -438,15 +442,21 @@ export function ThreeStepTransfer() {
           ].map((s) => (
             <div
               key={s.num}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all ${
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all ${
                 step === s.num
-                  ? 'bg-[#FF5500] text-white font-bold shadow-md'
+                  ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-black font-semibold shadow-md shadow-amber-500/20'
                   : step > s.num
-                  ? 'bg-white/5 text-[#34D399]'
-                  : 'text-[#71717A]'
+                  ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-medium'
+                  : 'text-neutral-500 hover:text-neutral-400'
               }`}
             >
-              <span className="w-4 h-4 rounded-full bg-black/30 flex items-center justify-center text-[10px]">
+              <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                step === s.num
+                  ? 'bg-black/25 text-black'
+                  : step > s.num
+                  ? 'bg-emerald-500/30 text-emerald-300'
+                  : 'bg-white/5 text-neutral-500'
+              }`}>
                 {step > s.num ? '✓' : s.num}
               </span>
               <span className="hidden sm:inline">{s.label}</span>
@@ -459,19 +469,19 @@ export function ThreeStepTransfer() {
       {/* ÉCRAN 1 : PRÉPARATION DU CONTENU & DURÉE ESTIMÉE                          */}
       {/* ========================================================================= */}
       {step === 1 && (
-        <div className="flex flex-col gap-4 animate-in fade-in duration-200">
+        <div className="flex flex-col gap-5 animate-in fade-in duration-200">
           {/* Bascule Texte vs Fichier */}
-          <div className="grid grid-cols-2 gap-2 bg-[#14141E] p-1.5 rounded-xl border border-white/10">
+          <div className="grid grid-cols-2 gap-2 bg-[#0A0B10] p-1.5 rounded-xl border border-white/[0.08] shadow-inner">
             <button
               type="button"
               onClick={() => {
                 setInputType('text');
                 setOversizeError(null);
               }}
-              className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg font-mono text-xs transition-colors ${
+              className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg font-mono text-xs transition-all ${
                 inputType === 'text'
-                  ? 'bg-[#FF5500] text-white font-bold'
-                  : 'text-[#A1A1AA] hover:text-white'
+                  ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-black font-bold shadow-md shadow-amber-500/20'
+                  : 'text-neutral-400 hover:text-white hover:bg-white/[0.04]'
               }`}
             >
               <FileText className="w-4 h-4" />
@@ -483,10 +493,10 @@ export function ThreeStepTransfer() {
                 setInputType('file');
                 setOversizeError(null);
               }}
-              className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg font-mono text-xs transition-colors ${
+              className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg font-mono text-xs transition-all ${
                 inputType === 'file'
-                  ? 'bg-[#FF5500] text-white font-bold'
-                  : 'text-[#A1A1AA] hover:text-white'
+                  ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-black font-bold shadow-md shadow-amber-500/20'
+                  : 'text-neutral-400 hover:text-white hover:bg-white/[0.04]'
               }`}
             >
               <FileUp className="w-4 h-4" />
@@ -496,13 +506,17 @@ export function ThreeStepTransfer() {
 
           {/* Saisie Texte / URL */}
           {inputType === 'text' && (
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-2">
               <label
                 htmlFor="text-input"
-                className="text-xs font-mono text-[#A1A1AA] flex justify-between"
+                className="text-xs font-mono text-neutral-400 flex justify-between items-center"
               >
-                <span>Message, lien ou clé secrète</span>
-                <span className="text-[#71717A]">{currentPayloadSize} / 16384 octets</span>
+                <span className="flex items-center gap-1.5 text-neutral-300">
+                  <FileText className="w-3.5 h-3.5 text-amber-400" /> Message, lien ou clé secrète
+                </span>
+                <span className="text-neutral-500 bg-white/[0.03] px-2 py-0.5 rounded border border-white/[0.05]">
+                  {currentPayloadSize} / 16384 octets
+                </span>
               </label>
               <textarea
                 id="text-input"
@@ -513,7 +527,7 @@ export function ThreeStepTransfer() {
                   setOversizeError(null);
                 }}
                 placeholder="Entrez votre texte ou collez une URL à transmettre par le son..."
-                className="w-full bg-[#14141E] border border-white/10 rounded-xl p-3 text-sm font-mono text-white placeholder-[#52525B] focus:border-[#FF5500] focus:outline-none transition-colors"
+                className="w-full bg-[#090A0F] border border-white/[0.08] focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/30 rounded-xl p-3.5 text-sm font-mono text-white placeholder-neutral-600 focus:outline-none transition-all shadow-inner"
               />
             </div>
           )}
@@ -523,10 +537,12 @@ export function ThreeStepTransfer() {
             <div className="flex flex-col gap-2">
               <label
                 htmlFor="file-drop-zone"
-                className="text-xs font-mono text-[#A1A1AA] flex justify-between"
+                className="text-xs font-mono text-neutral-400 flex justify-between items-center"
               >
                 <span>Sélectionner un fichier (limite matérielle acoustique)</span>
-                <span className="text-[#FF5500] font-semibold">Taille max : 16 Ko</span>
+                <span className="text-amber-400 font-semibold bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded">
+                  Max : 16 Ko
+                </span>
               </label>
               <div
                 id="file-drop-zone"
@@ -537,7 +553,7 @@ export function ThreeStepTransfer() {
                     void handleFileSelection(e.dataTransfer.files[0]);
                   }
                 }}
-                className="border-2 border-dashed border-white/15 hover:border-[#FF5500]/60 rounded-xl p-5 text-center flex flex-col items-center justify-center gap-2 bg-[#14141E]/50 transition-colors cursor-pointer"
+                className="border-2 border-dashed border-white/10 hover:border-amber-500/50 rounded-xl p-6 text-center flex flex-col items-center justify-center gap-3 bg-[#090A0F]/60 hover:bg-amber-500/[0.02] transition-all cursor-pointer group"
                 onClick={() => {
                   const input = document.createElement('input');
                   input.type = 'file';
@@ -548,17 +564,21 @@ export function ThreeStepTransfer() {
                   input.click();
                 }}
               >
-                <FileArchive className="w-8 h-8 text-[#FF5500]" />
-                <p className="text-xs text-[#D4D4D8]">
-                  Glissez un petit fichier ici ou cliquez pour parcourir
-                </p>
-                <p className="text-[11px] text-[#71717A]">
-                  Miniature d'image, clé PGP, certificat, jeton de configuration (max 16 Ko)
-                </p>
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500/15 via-orange-500/5 to-transparent border border-amber-500/25 flex items-center justify-center text-amber-400 group-hover:scale-105 transition-transform">
+                  <FileArchive className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="text-xs text-neutral-200 font-medium">
+                    Glissez un fichier ici ou <span className="text-amber-400 underline underline-offset-4">parcourez vos dossiers</span>
+                  </p>
+                  <p className="text-[11px] text-neutral-500 mt-1">
+                    Miniature d'image, clé PGP, certificat, jeton de configuration (max 16 Ko)
+                  </p>
+                </div>
               </div>
 
               {selectedFile && (
-                <div className="flex items-center justify-between p-3 bg-[#181824] rounded-xl border border-white/10 text-xs font-mono">
+                <div className="flex items-center justify-between p-3.5 bg-[#0F111A] rounded-xl border border-white/[0.08] text-xs font-mono shadow-sm">
                   <div className="flex items-center gap-3">
                     {blurHashDataUrl && (
                       <img
@@ -569,11 +589,11 @@ export function ThreeStepTransfer() {
                     )}
                     <div>
                       <p className="text-white font-bold">{selectedFile.name}</p>
-                      <p className="text-[#A1A1AA]">
+                      <p className="text-neutral-400">
                         {(selectedFile.size / 1024).toFixed(2)} Ko · {selectedFile.type || 'binaire'}
                       </p>
                       {imageBlurHash && (
-                        <p className="text-[10px] text-[#FF6A1F] truncate max-w-[200px]">
+                        <p className="text-[10px] text-amber-400 truncate max-w-[200px]">
                           BlurHash: {imageBlurHash}
                         </p>
                       )}
@@ -587,7 +607,7 @@ export function ThreeStepTransfer() {
                       setFileBytes(null);
                       setImageBlurHash(null);
                     }}
-                    className="text-[#71717A] hover:text-[#EF4444] text-xs px-2 py-1"
+                    className="text-neutral-500 hover:text-red-400 hover:bg-red-500/10 text-xs px-2.5 py-1.5 rounded-lg transition-colors border border-transparent hover:border-red-500/20"
                   >
                     Retirer
                   </button>
@@ -598,8 +618,8 @@ export function ThreeStepTransfer() {
 
           {/* Erreur de dépassement de taille */}
           {oversizeError && (
-            <div className="flex items-center gap-2 p-3 bg-[#EF4444]/10 border border-[#EF4444]/30 rounded-xl text-xs text-[#EF4444]">
-              <AlertTriangle className="w-4 h-4 shrink-0" />
+            <div className="flex items-center gap-2.5 p-3.5 bg-red-500/10 border border-red-500/30 rounded-xl text-xs text-red-400">
+              <AlertTriangle className="w-4 h-4 shrink-0 text-red-400" />
               <span>{oversizeError}</span>
             </div>
           )}
@@ -607,43 +627,43 @@ export function ThreeStepTransfer() {
           {/* Paramètres de profil et chiffrement */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
             {/* Profil acoustique avec estimation mesurée */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-mono text-[#A1A1AA] flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-[#FF5500]" />
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-mono text-neutral-400 flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-amber-400" />
                 Profil acoustique & Débit
               </label>
               <select
                 value={profile}
                 onChange={(e) => setProfile(e.target.value as ProfileId)}
-                className="bg-[#14141E] border border-white/10 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#FF5500]"
+                className="bg-[#090A0F] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-xs font-mono text-white focus:outline-none focus:border-amber-500/60 transition-colors cursor-pointer"
               >
                 <option value="audible-normal">Audible Normal (16 octets/s · Pièce calme)</option>
                 <option value="audible-fast">Audible Rapide (24 octets/s · Proche)</option>
                 <option value="audible-fastest">Audible Turbo (32 octets/s · Très proche)</option>
               </select>
-              <p className="text-[11px] font-mono text-[#34D399]">
-                Durée estimée : ~{estimatedDurationSec} s
+              <p className="text-[11px] font-mono text-emerald-400 flex items-center gap-1">
+                <span>⏱ Durée estimée :</span> <span className="font-bold">~{estimatedDurationSec} s</span>
               </p>
             </div>
 
             {/* Chiffrement activé par défaut */}
-            <div className="flex flex-col gap-1.5 justify-center">
-              <label className="text-xs font-mono text-[#A1A1AA] flex items-center gap-1.5">
-                <Shield className="w-3.5 h-3.5 text-[#34D399]" />
+            <div className="flex flex-col gap-2 justify-center">
+              <label className="text-xs font-mono text-neutral-400 flex items-center gap-1.5">
+                <Shield className="w-3.5 h-3.5 text-emerald-400" />
                 Sécurité de la session
               </label>
-              <label className="flex items-center gap-2 p-2 bg-[#14141E] border border-white/10 rounded-xl cursor-pointer hover:border-white/20 transition-colors">
+              <label className="flex items-center gap-2.5 p-2.5 bg-[#090A0F] border border-white/[0.08] rounded-xl cursor-pointer hover:border-white/20 transition-colors">
                 <input
                   type="checkbox"
                   checked={encrypted}
                   onChange={(e) => setEncrypted(e.target.checked)}
-                  className="rounded border-white/20 text-[#FF5500] focus:ring-0"
+                  className="rounded border-white/20 text-amber-500 focus:ring-0 accent-amber-500"
                 />
                 <span className="text-xs font-mono text-white">
                   Chiffrement de bout en bout (TweetNaCl)
                 </span>
               </label>
-              <p className="text-[10px] text-[#71717A]">
+              <p className="text-[10px] text-neutral-500">
                 {encrypted
                   ? 'Clés X25519 éphémères + Code court SAS obligatoire.'
                   : 'Attention : le signal sera transmis en clair dans l’air.'}
@@ -656,7 +676,7 @@ export function ThreeStepTransfer() {
             type="button"
             onClick={() => void proceedToStep2()}
             disabled={currentPayloadSize === 0 || currentPayloadSize > MAX_ACOUSTIC_PAYLOAD_BYTES}
-            className="mt-2 w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-mono text-xs font-bold uppercase tracking-wider bg-[#FF5500] hover:bg-[#FF6A1F] text-white disabled:opacity-40 disabled:pointer-events-none transition-all shadow-[0_0_20px_rgba(255,85,0,0.3)]"
+            className="mt-3 w-full flex items-center justify-center gap-2 py-3.5 px-5 rounded-xl font-mono text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black disabled:opacity-40 disabled:pointer-events-none transition-all shadow-[0_0_24px_rgba(245,158,11,0.25)] active:scale-[0.99]"
           >
             Étape 2 : Vérifier la proximité (SAS) →
           </button>
@@ -667,31 +687,35 @@ export function ThreeStepTransfer() {
       {/* ÉCRAN 2 : PROXIMITÉ, BRUIT AMBIANT ET CODE COURT SAS                      */}
       {/* ========================================================================= */}
       {step === 2 && (
-        <div className="flex flex-col gap-5 animate-in fade-in duration-200">
-          <div className="text-center flex flex-col items-center gap-1">
+        <div className="flex flex-col gap-6 animate-in fade-in duration-200">
+          <div className="text-center flex flex-col items-center gap-1.5">
             <h3 className="text-sm font-bold font-mono uppercase tracking-wider text-white">
               Vérification de Proximité par Code Court (SAS)
             </h3>
-            <p className="text-xs text-[#A1A1AA] max-w-md">
+            <p className="text-xs text-neutral-400 max-w-md">
               Rapprochez les deux appareils (0,3 à 1,5 mètre). Comparez le code ci-dessous avec
               celui affiché sur l'autre écran avant d'autoriser le transfert.
             </p>
           </div>
 
           {/* JAUGE DE BRUIT AMBIANT RMS (MESURE RÉELLE EN TEMPS RÉEL) */}
-          <div className="bg-[#14141E] p-4 rounded-xl border border-white/10 flex flex-col gap-2">
+          <div className="bg-[#0A0B10] p-4.5 rounded-2xl border border-white/[0.08] flex flex-col gap-3 shadow-inner">
             <div className="flex items-center justify-between text-xs font-mono">
-              <span className="flex items-center gap-2 text-[#A1A1AA]">
-                <Mic className={`w-4 h-4 ${isListening ? 'text-[#34D399] animate-pulse' : ''}`} />
+              <span className="flex items-center gap-2 text-neutral-300">
+                <span className="relative flex h-2 w-2">
+                  {isListening && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />}
+                  <span className={`relative inline-flex rounded-full h-2 w-2 ${isListening ? 'bg-emerald-500' : 'bg-neutral-600'}`} />
+                </span>
+                <Mic className="w-4 h-4 text-amber-400" />
                 Microphone & Bruit Ambiant
               </span>
               <span
-                className={`font-bold px-2 py-0.5 rounded text-[11px] ${
+                className={`font-semibold px-2.5 py-0.5 rounded-full text-[11px] border ${
                   noiseStatus === 'calm'
-                    ? 'bg-[#34D399]/15 text-[#34D399]'
+                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                     : noiseStatus === 'noisy'
-                    ? 'bg-[#FBBF24]/15 text-[#FBBF24]'
-                    : 'bg-[#EF4444]/15 text-[#EF4444]'
+                    ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                    : 'bg-red-500/10 text-red-400 border-red-500/20'
                 }`}
               >
                 {noiseStatus === 'calm'
@@ -703,59 +727,63 @@ export function ThreeStepTransfer() {
             </div>
 
             {/* Barre graphique de niveau RMS */}
-            <div className="w-full h-2.5 bg-black/50 rounded-full overflow-hidden relative border border-white/10">
+            <div className="w-full h-2.5 bg-black/60 rounded-full overflow-hidden relative border border-white/[0.06]">
               <div
                 className={`h-full transition-all duration-100 ${
                   noiseStatus === 'calm'
-                    ? 'bg-[#34D399]'
+                    ? 'bg-gradient-to-r from-emerald-500 to-teal-400'
                     : noiseStatus === 'noisy'
-                    ? 'bg-[#FBBF24]'
-                    : 'bg-[#EF4444]'
+                    ? 'bg-gradient-to-r from-amber-500 to-orange-400'
+                    : 'bg-gradient-to-r from-red-500 to-rose-400'
                 }`}
                 style={{
                   width: `${Math.min(100, Math.max(0, ((rmsDbfs + 96) / 96) * 100))}%`,
                 }}
               />
             </div>
-            <div className="flex justify-between text-[10px] font-mono text-[#71717A]">
+            <div className="flex justify-between text-[10px] font-mono text-neutral-500">
               <span>Silence (-96 dBFS)</span>
-              <span>Niveau actuel : {rmsDbfs.toFixed(1)} dBFS</span>
+              <span className="text-neutral-400 font-semibold">Niveau actuel : {rmsDbfs.toFixed(1)} dBFS</span>
               <span>Seuil max (-30 dBFS)</span>
             </div>
-            <div className="text-[11px] font-mono text-[#A1A1AA] bg-black/30 px-3 py-2 rounded-lg border border-white/5 flex items-center gap-2">
-              <span className="text-[#38BDF8] font-bold">⚡ Débit adaptatif :</span>
-              <span>{selectAdaptiveProfile(rmsDbfs, 'audible', inputType === 'file' ? (fileBytes?.length || 32) : textContent.length).rationale}</span>
+            <div className="text-[11px] font-mono text-neutral-300 bg-white/[0.02] p-2.5 rounded-xl border border-white/[0.05] flex items-center gap-2">
+              <span className="text-cyan-400 font-bold">⚡ Débit adaptatif :</span>
+              <span className="text-neutral-400">{selectAdaptiveProfile(rmsDbfs, 'audible', inputType === 'file' ? (fileBytes?.length || 32) : textContent.length).rationale}</span>
             </div>
           </div>
 
           {/* GRAND AFFICHAGE DU CODE SAS À 6 CHIFFRES */}
-          <div className="bg-gradient-to-b from-[#181826] to-[#0F0F18] border-2 border-[#FF5500]/50 rounded-2xl p-6 text-center flex flex-col items-center gap-3 shadow-[0_0_30px_rgba(255,85,0,0.15)]">
-            <span className="text-[11px] font-mono uppercase tracking-widest text-[#FF6A1F]">
-              Empreinte de session (SAS)
-            </span>
+          <div className="relative overflow-hidden bg-gradient-to-b from-[#141624] via-[#0E1019] to-[#0A0B10] border border-amber-500/30 rounded-2xl p-6 sm:p-7 text-center flex flex-col items-center gap-4 shadow-2xl shadow-amber-500/5">
+            {/* Ligne lumineuse dorée supérieure */}
+            <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-amber-400/50 to-transparent" />
+
+            <div className="flex items-center gap-2 text-[11px] font-mono uppercase tracking-widest text-amber-400 bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full">
+              <Shield className="w-3.5 h-3.5" />
+              <span>Empreinte de session (SAS)</span>
+            </div>
             <div
-              className="text-4xl sm:text-5xl font-mono font-black tracking-widest text-white select-all px-6 py-2 bg-black/40 rounded-xl border border-white/10"
+              className="text-4xl sm:text-5xl font-mono font-black tracking-[0.25em] text-white select-all px-8 py-3 bg-[#07080C]/80 rounded-2xl border border-white/10 shadow-inner"
               aria-label={`Code court SAS : ${sasCode}`}
             >
               {sasCode}
             </div>
-            <p className="text-xs text-[#D4D4D8] font-medium pt-1">
+            <p className="text-xs text-neutral-300 font-medium">
               Le même code à 6 chiffres apparaît-il sur l’autre appareil ?
             </p>
 
             {/* Boutons Oui / Non pour validation explicite */}
-            <div className="grid grid-cols-2 gap-3 w-full max-w-sm pt-2">
+            <div className="grid grid-cols-2 gap-3 w-full max-w-sm pt-1">
               <button
                 type="button"
                 onClick={() => handleSasResponse(false)}
-                className="py-2.5 px-4 rounded-xl font-mono text-xs font-bold uppercase tracking-wider bg-[#EF4444]/15 hover:bg-[#EF4444]/25 text-[#EF4444] border border-[#EF4444]/30 transition-colors"
+                className="py-3 px-4 rounded-xl font-mono text-xs font-bold uppercase tracking-wider bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 transition-all active:scale-[0.99]"
               >
                 ✕ Non (Différent)
               </button>
               <button
                 type="button"
                 onClick={() => handleSasResponse(true)}
-                className="py-2.5 px-4 rounded-xl font-mono text-xs font-bold uppercase tracking-wider bg-[#34D399] hover:bg-[#34D399]/90 text-black border border-[#34D399] transition-all shadow-[0_0_20px_rgba(52,211,153,0.3)]"
+                className="py-3 px-4 rounded-xl font-mono text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-black border border-emerald-400/40 transition-all shadow-[0_0_24px_rgba(16,185,129,0.3)] active:scale-[0.99]"
               >
                 ✓ Oui (Identiques)
               </button>
@@ -764,7 +792,7 @@ export function ThreeStepTransfer() {
 
           {/* Alerte si le code est refusé ou en cas de problème */}
           {pairingAlert && (
-            <div className="flex items-center gap-2 p-3 bg-[#EF4444]/15 border border-[#EF4444]/40 rounded-xl text-xs text-[#EF4444]">
+            <div className="flex items-center gap-2.5 p-3.5 bg-red-500/10 border border-red-500/30 rounded-xl text-xs text-red-400">
               <ShieldAlert className="w-5 h-5 shrink-0" />
               <span>{pairingAlert}</span>
             </div>
@@ -774,7 +802,7 @@ export function ThreeStepTransfer() {
           <button
             type="button"
             onClick={resetTransfer}
-            className="flex items-center justify-center gap-2 text-xs font-mono text-[#A1A1AA] hover:text-white transition-colors"
+            className="flex items-center justify-center gap-2 text-xs font-mono text-neutral-400 hover:text-white transition-colors py-1"
           >
             ← Modifier le contenu (Retour à l'étape 1)
           </button>
@@ -785,42 +813,42 @@ export function ThreeStepTransfer() {
       {/* ÉCRAN 3 : PROGRESSION PAR TRAMES RÉELLES & CONFIRMATION SHA-256           */}
       {/* ========================================================================= */}
       {step === 3 && (
-        <div className="flex flex-col gap-5 animate-in fade-in duration-200">
+        <div className="flex flex-col gap-6 animate-in fade-in duration-200">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-sm font-bold font-mono uppercase tracking-wider text-white">
                 {isTransmitting ? 'Transfert Acoustique en Cours' : 'Transfert Terminé et Validé'}
               </h3>
-              <p className="text-xs text-[#A1A1AA]">
+              <p className="text-xs text-neutral-400">
                 {isTransmitting
                   ? 'Émission des trames modulées et contrôle CRC-16'
                   : 'Empreinte SHA-256 authentifiée avec succès'}
               </p>
             </div>
             {isTransmitting && (
-              <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#FF5500]/15 border border-[#FF5500]/30 rounded-lg text-xs font-mono text-[#FF5500]">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/15 border border-amber-500/30 rounded-xl text-xs font-mono text-amber-400 shadow-sm shadow-amber-500/10">
                 <Volume2 className="w-4 h-4 animate-bounce" />
-                <span>Émission</span>
+                <span className="font-semibold">Émission...</span>
               </div>
             )}
           </div>
 
           {/* PROGRESSION STRICTE PAR TRAMES (PAS DE FAUX POURCENTAGE LISSÉ) */}
-          <div className="bg-[#14141E] p-4 rounded-xl border border-white/10 flex flex-col gap-2.5">
+          <div className="bg-[#0A0B10] p-4.5 rounded-2xl border border-white/[0.08] flex flex-col gap-3 shadow-inner">
             <div className="flex items-center justify-between text-xs font-mono">
-              <span className="text-[#A1A1AA]">
-                Trame {currentFrameIndex} / {totalFramesCount}
+              <span className="text-neutral-400">
+                Trame <span className="text-white font-bold">{currentFrameIndex}</span> / {totalFramesCount}
               </span>
-              <span className="text-white font-bold">
+              <span className="text-amber-400 font-bold text-sm">
                 {totalFramesCount > 0
                   ? `${Math.round((currentFrameIndex / totalFramesCount) * 100)} %`
                   : '0 %'}
               </span>
             </div>
 
-            <div className="w-full h-3 bg-black/60 rounded-full overflow-hidden border border-white/10">
+            <div className="w-full h-3.5 bg-black/70 rounded-full overflow-hidden border border-white/[0.08] p-0.5">
               <div
-                className="h-full bg-gradient-to-r from-[#FF5500] to-[#FF8C00] transition-all duration-300"
+                className="h-full rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-400 shadow-md shadow-amber-500/30 transition-all duration-300"
                 style={{
                   width: `${
                     totalFramesCount > 0 ? (currentFrameIndex / totalFramesCount) * 100 : 0
@@ -831,7 +859,7 @@ export function ThreeStepTransfer() {
 
             {/* Indicateur honnête de réémission en cas d'erreur */}
             {retryFrameIndex !== null && (
-              <div className="flex items-center gap-2 p-2 bg-[#FBBF24]/10 border border-[#FBBF24]/30 rounded-lg text-[11px] font-mono text-[#FBBF24]">
+              <div className="flex items-center gap-2 p-2.5 bg-amber-500/10 border border-amber-500/30 rounded-xl text-[11px] font-mono text-amber-300">
                 <RotateCcw className="w-3.5 h-3.5 animate-spin" />
                 <span>NACK reçu : Réémission honnête de la trame {retryFrameIndex + 1}</span>
               </div>
@@ -840,34 +868,36 @@ export function ThreeStepTransfer() {
 
           {/* RÉSULTAT DU TRANSFERT UNE FOIS TERMINÉ */}
           {completedTransfer && (
-            <div className="bg-[#14141E] border border-[#34D399]/40 rounded-xl p-4 flex flex-col gap-3">
+            <div className="relative overflow-hidden bg-gradient-to-b from-[#0E1513] via-[#0A100E] to-[#080B0A] border border-emerald-500/30 rounded-2xl p-5 sm:p-6 flex flex-col gap-4 shadow-2xl shadow-emerald-500/5">
+              <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-emerald-400/50 to-transparent" />
+
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs font-mono text-[#34D399] font-bold">
-                  <ShieldCheck className="w-5 h-5" />
-                  Transfert Chiffré et Vérifié
+                <div className="flex items-center gap-2.5 text-xs font-mono text-emerald-400 font-bold bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full">
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>Transfert Chiffré et Vérifié</span>
                 </div>
-                <span className="text-[11px] font-mono text-[#A1A1AA]">
+                <span className="text-[11px] font-mono text-neutral-400 bg-white/[0.04] px-2.5 py-0.5 rounded-full border border-white/[0.06]">
                   {completedTransfer.size} octets
                 </span>
               </div>
 
               {/* Empreinte SHA-256 tronquée honnêtement */}
-              <div className="bg-black/50 p-2.5 rounded-lg border border-white/10 flex items-center justify-between text-xs font-mono">
-                <span className="text-[#71717A]">Empreinte SHA-256 :</span>
-                <span className="text-[#F4F4F6] font-bold tracking-wider">
+              <div className="bg-[#050706] p-3 rounded-xl border border-white/[0.06] flex items-center justify-between text-xs font-mono shadow-inner">
+                <span className="text-neutral-500">Empreinte SHA-256 :</span>
+                <span className="text-emerald-300 font-bold tracking-wider">
                   {completedTransfer.sha256Hex.slice(0, 8)}…{completedTransfer.sha256Hex.slice(-8)}
                 </span>
               </div>
 
               {/* Contenu reçu ou transmis */}
               {completedTransfer.text && (
-                <div className="bg-[#1A1A28] p-3 rounded-lg border border-white/10 text-xs font-mono text-white whitespace-pre-wrap break-all max-h-36 overflow-y-auto">
+                <div className="bg-[#050706] p-3.5 rounded-xl border border-white/[0.06] text-xs font-mono text-neutral-200 whitespace-pre-wrap break-all max-h-40 overflow-y-auto shadow-inner">
                   {completedTransfer.text}
                 </div>
               )}
 
               {/* Actions finales: Copier ou Télécharger */}
-              <div className="flex flex-wrap items-center gap-2 pt-1">
+              <div className="flex flex-wrap items-center gap-2.5 pt-1">
                 {completedTransfer.text && (
                   <button
                     type="button"
@@ -876,9 +906,9 @@ export function ThreeStepTransfer() {
                       setCopiedText(true);
                       setTimeout(() => setCopiedText(false), 2000);
                     }}
-                    className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-mono text-xs font-bold bg-[#27273A] hover:bg-[#32324A] text-white transition-colors"
+                    className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-mono text-xs font-bold bg-white/[0.06] hover:bg-white/[0.1] text-white border border-white/10 transition-all active:scale-[0.99]"
                   >
-                    {copiedText ? <Check className="w-4 h-4 text-[#34D399]" /> : <Copy className="w-4 h-4" />}
+                    {copiedText ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
                     {copiedText ? 'Copié dans le presse-papiers' : 'Copier le texte'}
                   </button>
                 )}
@@ -897,7 +927,7 @@ export function ThreeStepTransfer() {
                       a.click();
                       URL.revokeObjectURL(url);
                     }}
-                    className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-mono text-xs font-bold bg-[#34D399] hover:bg-[#34D399]/90 text-black transition-colors"
+                    className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-mono text-xs font-bold bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-black border border-emerald-400/40 transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] active:scale-[0.99]"
                   >
                     <Download className="w-4 h-4" />
                     Enregistrer le fichier
@@ -907,7 +937,7 @@ export function ThreeStepTransfer() {
                 <button
                   type="button"
                   onClick={resetTransfer}
-                  className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-mono text-xs font-bold bg-white/5 hover:bg-white/10 text-[#D4D4D8] transition-colors"
+                  className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-mono text-xs font-bold bg-white/[0.04] hover:bg-white/[0.08] text-neutral-300 border border-white/[0.08] transition-all"
                 >
                   <RotateCcw className="w-4 h-4" />
                   Nouveau transfert

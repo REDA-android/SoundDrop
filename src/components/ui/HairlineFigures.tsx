@@ -41,7 +41,11 @@ export const HairlineFigure: React.FC<HairlineFigureProps> = ({
     <div
       onPointerMove={handlePointerMove}
       onPointerLeave={() => setPointer({ x: 0.5, y: 0.5, hovered: false })}
-      className="group relative flex items-center gap-3 rounded-xl bg-[#0D0D12] border border-white/15 px-3 py-2 transition-colors hover:border-white/30"
+      className={`group relative flex items-center gap-3.5 rounded-2xl p-3 border transition-all duration-300 backdrop-blur-xl ${
+        active
+          ? 'bg-[#121624]/85 border-[#FF6A1F]/30 shadow-[0_8px_24px_-8px_rgba(255,106,31,0.2)]'
+          : 'bg-[#0E1119]/80 border-white/[0.08] hover:border-white/[0.18] shadow-[0_8px_20px_-8px_rgba(0,0,0,0.5)]'
+      }`}
     >
       <svg
         width="44"
@@ -178,14 +182,21 @@ export const HairlineFigure: React.FC<HairlineFigureProps> = ({
       </svg>
 
       {(label || metric) && (
-        <div className="flex flex-col min-w-0">
-          {label && (
-            <span className="font-mono text-[10px] uppercase tracking-wider text-[#A1A1AA] truncate">
-              {label}
-            </span>
-          )}
+        <div className="flex flex-col min-w-0 flex-1">
+          <div className="flex items-center justify-between gap-1">
+            {label && (
+              <span className="font-mono text-[10px] uppercase font-semibold tracking-wider text-slate-400 truncate">
+                {label}
+              </span>
+            )}
+            {active && (
+              <span className="h-1.5 w-1.5 rounded-full bg-[#FF6A1F] animate-pulse" />
+            )}
+          </div>
           {metric && (
-            <span className="font-mono text-xs font-bold text-[#F4F4F6] truncate">{metric}</span>
+            <span className="font-mono text-xs font-bold text-white tracking-tight truncate mt-0.5">
+              {metric}
+            </span>
           )}
         </div>
       )}

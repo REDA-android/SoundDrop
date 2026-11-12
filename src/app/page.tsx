@@ -69,7 +69,7 @@ import { TransferMonitor } from '@/components/transfer/TransferMonitor';
 import { MeshParticleCanvas } from '@/components/canvas/MeshParticleCanvas';
 import { ThreeStepTransfer } from '@/components/transfer/ThreeStepTransfer';
 import { RoadmapDocsPanel } from '@/components/transfer/RoadmapDocsPanel';
-import { Layers } from 'lucide-react';
+import { Layers, Network, BookOpen } from 'lucide-react';
 import {
   MultiProtocolPanel,
   UnifiedProtocol,
@@ -823,50 +823,76 @@ export default function SoundDropApp() {
           />
         </section>
 
-        {/* UNIFIED ARCHITECTURE WORKSPACE BAR — FUSING ALL 4 REPOSITORY MODULES */}
+        {/* ELEGANT WORKSPACE SELECTOR */}
         <section
           aria-label="Sélecteur d'architecture unifiée SoundDrop"
-          className="hardware-chassis rounded-2xl p-2.5 border border-white/15 flex flex-col gap-2"
+          className="rounded-2xl p-2.5 bg-[#0F121C]/85 backdrop-blur-2xl border border-white/[0.08] shadow-[0_12px_32px_-8px_rgba(0,0,0,0.6)] flex flex-col gap-2.5"
         >
-          <div className="flex flex-wrap items-center justify-between gap-2 px-2 pt-0.5">
+          <div className="flex flex-wrap items-center justify-between gap-2 px-1.5 pt-0.5">
             <div className="flex items-center gap-2">
-              <Layers className="w-4 h-4 text-[#FF6A1F]" />
-              <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#F4F4F6]">
-                Poste de Commande SoundDrop (Version Web)
+              <span className="p-1 rounded-lg bg-orange-500/10 border border-orange-500/20 text-[#FF6A1F]">
+                <Layers className="w-3.5 h-3.5" />
+              </span>
+              <span className="font-mono text-xs font-bold uppercase tracking-wider text-slate-200">
+                Espace de Commande SoundDrop
               </span>
             </div>
-            <span className="font-mono text-[10px] text-[#34D399]">
-              Modem ggwave WASM & WebRTC actif
-            </span>
+            <div className="flex items-center gap-1.5 font-mono text-[11px] text-emerald-400 bg-emerald-950/30 px-2 py-0.5 rounded-full border border-emerald-500/20">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Modem ggwave WASM & WebRTC actif</span>
+            </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5 bg-[#0A0A0C] p-1.5 rounded-xl border border-white/10">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-[#08090F]/90 p-1.5 rounded-xl border border-white/[0.06]">
             {[
-              { id: 'THREE_STEP_TRANSFER', label: '★ Parcours 3 Écrans', badge: 'PRINCIPAL' },
-              { id: 'HUB_10_PROTOCOLS', label: 'WebRTC LAN & Fichiers', badge: 'LAN' },
-              { id: 'NATIVE_SYSTEM_50_REPOS', label: 'Documentation & Roadmap', badge: 'DOCS' },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setWorkspaceView(tab.id as UnifiedWorkspaceView)}
-                className={`flex items-center justify-between gap-1.5 px-3 py-2 rounded-lg font-mono text-[11px] transition-all ${
-                  workspaceView === tab.id
-                    ? 'bg-[#FF5500] text-white font-bold shadow-[0_0_20px_rgba(255,85,0,0.35)]'
-                    : 'bg-[#14141C] text-[#D4D4D8] hover:text-white hover:bg-[#1E1E2A]'
-                }`}
-              >
-                <span className="truncate">{tab.label}</span>
-                <span
-                  className={`px-1.5 py-0.5 rounded text-[9px] ${
-                    workspaceView === tab.id
-                      ? 'bg-black/30 text-white'
-                      : 'bg-white/5 text-[#A1A1AA]'
+              {
+                id: 'THREE_STEP_TRANSFER',
+                label: 'Parcours AirDrop 3 Écrans',
+                badge: 'PRINCIPAL',
+                icon: <Radio className="w-4 h-4" />,
+              },
+              {
+                id: 'HUB_10_PROTOCOLS',
+                label: 'Hub Réseau 10 Protocoles',
+                badge: 'P2P / LAN',
+                icon: <Network className="w-4 h-4" />,
+              },
+              {
+                id: 'NATIVE_SYSTEM_50_REPOS',
+                label: 'Architecture & Spécifications',
+                badge: 'DOCS',
+                icon: <BookOpen className="w-4 h-4" />,
+              },
+            ].map((tab) => {
+              const isActive = workspaceView === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setWorkspaceView(tab.id as UnifiedWorkspaceView)}
+                  className={`flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl font-mono text-xs transition-all duration-200 cursor-pointer ${
+                    isActive
+                      ? 'bg-gradient-to-b from-[#22283C] to-[#141826] text-white font-semibold border border-white/[0.16] shadow-[0_4px_20px_rgba(0,0,0,0.45)]'
+                      : 'bg-transparent text-slate-400 hover:text-slate-200 hover:bg-white/[0.03]'
                   }`}
                 >
-                  {tab.badge}
-                </span>
-              </button>
-            ))}
+                  <span className="flex items-center gap-2.5 truncate">
+                    <span className={isActive ? 'text-[#FF6A1F]' : 'text-slate-500'}>
+                      {tab.icon}
+                    </span>
+                    <span className="truncate">{tab.label}</span>
+                  </span>
+                  <span
+                    className={`px-1.5 py-0.5 rounded text-[9px] font-bold tracking-wider ${
+                      isActive
+                        ? 'bg-[#FF6A1F]/20 text-[#FF6A1F] border border-[#FF6A1F]/30'
+                        : 'bg-white/[0.04] text-slate-500'
+                    }`}
+                  >
+                    {tab.badge}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </section>
 

@@ -71,7 +71,7 @@ export const MultiProtocolPanel: React.FC<MultiProtocolPanelProps> = ({
       <div
         role="tablist"
         aria-label="Protocoles P2P et Hors-Ligne"
-        className="grid grid-cols-3 gap-1.5 p-1.5 bg-[#0C0C10] border border-white/15 rounded-2xl"
+        className="grid grid-cols-3 gap-2 p-2 bg-[#0A0B10]/80 border border-white/[0.08] rounded-2xl shadow-inner backdrop-blur-md"
       >
         {PROTOCOL_TABS.map((p) => {
           const isSelected = activeProtocol === p.id;
@@ -85,23 +85,23 @@ export const MultiProtocolPanel: React.FC<MultiProtocolPanelProps> = ({
               aria-selected={isSelected}
               aria-controls={`panel-${p.id}`}
               onClick={() => onProtocolChange(p.id)}
-              className={`min-h-[44px] px-2 py-1.5 rounded-xl transition-all flex flex-col items-center justify-center text-center ${
-                isPlanned ? 'opacity-60 hover:opacity-85' : ''
+              className={`min-h-[46px] px-2.5 py-2 rounded-xl transition-all flex flex-col items-center justify-center text-center ${
+                isPlanned ? 'opacity-60 hover:opacity-90' : ''
               } ${
                 isSelected
-                  ? 'bg-[#1E1E28] text-[#FF7A33] border border-[#FF5500]/50 shadow-sm font-bold'
-                  : 'text-[#D4D4D8] hover:text-white hover:bg-[#16161E] border border-transparent'
+                  ? 'bg-gradient-to-br from-amber-500/20 via-orange-500/10 to-transparent text-amber-300 border border-amber-500/40 shadow-md shadow-amber-500/10 font-bold'
+                  : 'text-neutral-400 hover:text-white hover:bg-white/[0.04] border border-transparent'
               }`}
             >
-              <div className="flex items-center gap-1">
-                <span className="text-[11px] leading-tight">{p.label}</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] leading-tight font-semibold">{p.label}</span>
                 {isPlanned && (
-                  <span className="text-[8px] px-1 py-0.5 rounded bg-zinc-800 text-zinc-400 font-mono">
+                  <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-white/[0.05] text-neutral-500 font-mono border border-white/[0.05]">
                     Prévu
                   </span>
                 )}
               </div>
-              <span className="text-[9px] text-[#A1A1AA] tracking-wider mt-0.5">{p.sub}</span>
+              <span className="text-[9px] text-neutral-500 tracking-wider mt-0.5">{p.sub}</span>
             </button>
           );
         })}
@@ -112,24 +112,27 @@ export const MultiProtocolPanel: React.FC<MultiProtocolPanelProps> = ({
         role="tabpanel"
         id={`panel-${activeProtocol}`}
         aria-labelledby={`tab-${activeProtocol}`}
-        className="rounded-2xl bg-[#121217] border border-white/15 p-4 space-y-3.5"
+        className="glass-panel rounded-2xl p-5 space-y-4"
       >
         {/* 1. PARTAGE 100% HORS-LIGNE (AIR-GAP SONORE DIRECT & WEBRTC LAN SANS INTERNET) */}
         {activeProtocol === 'ACOUSTIC' && (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {/* Direct Air-Gap Acoustic File Emission */}
-            <div className="rounded-xl bg-[#0C0C10] border border-white/15 p-3 space-y-2.5">
+            <div className="rounded-xl bg-[#090A0F] border border-white/[0.08] p-4 space-y-3 shadow-inner">
               <div className="flex items-center justify-between">
-                <span className="font-bold text-[#F4F4F6] text-xs">
+                <span className="font-bold text-white text-xs flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
                   1. TRANSFERT SONORE DIRECT (AIR-GAP 0% RÉSEAU)
                 </span>
-                <span className="text-[10px] text-[#34D399] font-semibold">HAUT-PARLEUR → MICRO</span>
+                <span className="text-[10px] text-emerald-400 font-semibold bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                  HAUT-PARLEUR → MICRO
+                </span>
               </div>
               <button
                 type="button"
                 disabled={!selectedFile || !onEmitDirectAcousticPayload}
                 onClick={() => onEmitDirectAcousticPayload && onEmitDirectAcousticPayload()}
-                className="w-full min-h-[40px] rounded-xl bg-[#FF5500] hover:bg-[#FF6A1F] disabled:opacity-40 text-white font-bold px-3 py-2 text-xs transition-colors"
+                className="w-full min-h-[44px] rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 disabled:opacity-40 text-black font-bold px-4 py-2.5 text-xs transition-all shadow-[0_0_20px_rgba(245,158,11,0.2)] active:scale-[0.99]"
               >
                 {selectedFile
                   ? `Diffuser "${selectedFile.name}" en ultrasons/audio`
@@ -138,14 +141,14 @@ export const MultiProtocolPanel: React.FC<MultiProtocolPanelProps> = ({
             </div>
 
             {/* Offline WebRTC SDP Exchange */}
-            <div className="rounded-xl bg-[#0C0C10] border border-white/15 p-3 space-y-2.5">
-              <span className="font-bold text-[#F4F4F6] text-xs block">
+            <div className="rounded-xl bg-[#090A0F] border border-white/[0.08] p-4 space-y-3 shadow-inner">
+              <span className="font-bold text-white text-xs block">
                 2. LIAISON WEBRTC HORS-LIGNE (ÉCHANGE DE JETONS MANUEL / ACOUSTIQUE)
               </span>
 
               {offlineSdpToken ? (
-                <div className="space-y-1.5">
-                  <span className="text-[11px] text-[#34D399] font-bold block">
+                <div className="space-y-2">
+                  <span className="text-[11px] text-emerald-400 font-bold block">
                     Votre jeton SDP local est prêt (compressé & encodé) :
                   </span>
                   <div className="flex gap-2">
@@ -154,7 +157,7 @@ export const MultiProtocolPanel: React.FC<MultiProtocolPanelProps> = ({
                       readOnly
                       value={offlineSdpToken}
                       aria-label="Jeton SDP Hors-Ligne local"
-                      className="flex-1 min-h-[38px] rounded-xl bg-[#14141C] border border-white/15 px-3 py-1.5 font-mono text-[11px] text-white"
+                      className="flex-1 min-h-[40px] rounded-xl bg-[#050608] border border-white/10 px-3.5 py-2 font-mono text-[11px] text-neutral-200 shadow-inner"
                     />
                     <button
                       type="button"
@@ -163,7 +166,7 @@ export const MultiProtocolPanel: React.FC<MultiProtocolPanelProps> = ({
                         setCopiedOfflineToken(true);
                         setTimeout(() => setCopiedOfflineToken(false), 1800);
                       }}
-                      className="rounded-lg bg-white/10 hover:bg-white/20 px-3 py-1.5 text-xs font-bold text-white flex items-center gap-1"
+                      className="rounded-xl bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 px-3.5 py-2 text-xs font-bold text-white flex items-center gap-1.5 transition-all active:scale-[0.98]"
                     >
                       {copiedOfflineToken ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                       <span>{copiedOfflineToken ? 'Copié' : 'Copier'}</span>
@@ -171,7 +174,7 @@ export const MultiProtocolPanel: React.FC<MultiProtocolPanelProps> = ({
                   </div>
                 </div>
               ) : (
-                <div className="text-[11px] text-[#A1A1AA]">
+                <div className="text-[11px] text-neutral-400">
                   Lancez un envoi ci-dessus pour générer votre jeton SDP Hors-Ligne local (<code>SDO1:...</code>).
                 </div>
               )}
@@ -191,12 +194,12 @@ export const MultiProtocolPanel: React.FC<MultiProtocolPanelProps> = ({
                   onChange={(e) => setRemoteOfflineTokenInput(e.target.value)}
                   placeholder="Coller le jeton SDO1:... ou SDA1:... du pair"
                   aria-label="Coller le jeton SDP Hors-Ligne distant"
-                  className="flex-1 min-h-[38px] rounded-xl bg-[#14141C] border border-white/15 px-3 py-1.5 text-xs text-[#F4F4F6] placeholder-[#A1A1AA]/60"
+                  className="flex-1 min-h-[40px] rounded-xl bg-[#050608] border border-white/10 px-3.5 py-2 text-xs text-white placeholder-neutral-600 focus:outline-none focus:border-emerald-500/50 shadow-inner"
                 />
                 <button
                   type="submit"
                   disabled={!remoteOfflineTokenInput.trim()}
-                  className="min-h-[38px] rounded-xl bg-[#10B981] hover:bg-[#059669] disabled:opacity-40 px-3.5 py-1.5 text-xs font-bold text-slate-950 transition-colors"
+                  className="min-h-[40px] rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 disabled:opacity-40 px-4 py-2 text-xs font-bold text-black border border-emerald-400/30 transition-all shadow-md shadow-emerald-500/20 active:scale-[0.99]"
                 >
                   Lier Hors-Ligne
                 </button>
@@ -207,19 +210,19 @@ export const MultiProtocolPanel: React.FC<MultiProtocolPanelProps> = ({
 
         {/* PROTOCOLES NATIFS PRÉVUS (HORS CHEMIN CRITIQUE WEB) */}
         {activeProtocol !== 'ACOUSTIC' && (
-          <div className="rounded-xl bg-[#0C0C10] border border-white/10 p-6 space-y-4 text-center">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono bg-zinc-800 text-zinc-300 border border-zinc-700">
-              <span className="w-2 h-2 rounded-full bg-zinc-400" />
-              <span>Protocole Prévu • Pas encore disponible</span>
+          <div className="rounded-xl bg-[#090A0F] border border-white/[0.08] p-6 space-y-4 text-center">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono bg-white/[0.04] text-neutral-400 border border-white/[0.06]">
+              <span className="w-2 h-2 rounded-full bg-neutral-500" />
+              <span>Protocole Prévu • Spécification Native</span>
             </div>
             <h3 className="text-base font-bold text-white uppercase tracking-wider">
               {PROTOCOL_TABS.find((t) => t.id === activeProtocol)?.label}
             </h3>
-            <p className="text-xs text-[#A1A1AA] max-w-lg mx-auto leading-relaxed font-sans">
+            <p className="text-xs text-neutral-400 max-w-lg mx-auto leading-relaxed font-sans">
               Ce protocole nécessite des sockets brutes (multicast UDP local, trames 802.11 AWDL Apple direct, ou sockets TCP/TLS) qui ne peuvent pas être ouvertes dans une sandbox de navigateur web sans extensions ou daemon natif compagnon.
             </p>
-            <p className="text-[11px] text-zinc-500 font-mono">
-              Spécification documentée dans <span className="text-orange-400">docs/ARCHITECTURE-NATIVE.md</span> et <span className="text-cyan-400">docs/REFERENCES.md</span>.
+            <p className="text-[11px] text-neutral-500 font-mono">
+              Spécification documentée dans <span className="text-amber-400">docs/ARCHITECTURE-NATIVE.md</span> et <span className="text-cyan-400">docs/REFERENCES.md</span>.
             </p>
           </div>
         )}
