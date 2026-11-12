@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches: [main, feat/sounddrop-airgap]
   workflow_dispatch:
 
 permissions:
@@ -35,7 +35,7 @@ jobs:
 
       - name: Build static export for GitHub Pages
         env:
-          NEXT_PUBLIC_BASE_PATH: /SoundDrop-AirGap
+          NEXT_PUBLIC_BASE_PATH: /SoundDrop
         run: |
           if [ -d "src/app/api" ]; then
             mv src/app/api /tmp/api_routes_stash
