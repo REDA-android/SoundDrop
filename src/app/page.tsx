@@ -67,7 +67,6 @@ import { FileDropzone } from '@/components/transfer/FileDropzone';
 import { PeerCard } from '@/components/transfer/PeerCard';
 import { TransferMonitor } from '@/components/transfer/TransferMonitor';
 import { MeshParticleCanvas } from '@/components/canvas/MeshParticleCanvas';
-import { AcousticRadarStudioWorkspace } from '@/components/studio/AcousticRadarStudioWorkspace';
 import { ThreeStepTransfer } from '@/components/transfer/ThreeStepTransfer';
 import { RoadmapDocsPanel } from '@/components/transfer/RoadmapDocsPanel';
 import { Layers } from 'lucide-react';
@@ -82,8 +81,6 @@ type UnifiedWorkspaceView =
   | 'THREE_STEP_TRANSFER'
   | 'ALL_FUSED'
   | 'HUB_10_PROTOCOLS'
-  | 'RADAR_16FSK_STUDIO'
-  | 'PROXIMITY_PAIRING'
   | 'NATIVE_SYSTEM_50_REPOS';
 
 export default function SoundDropApp() {
@@ -842,13 +839,11 @@ export default function SoundDropApp() {
               Modem ggwave WASM & WebRTC actif
             </span>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-1.5 bg-[#0A0A0C] p-1.5 rounded-xl border border-white/10">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5 bg-[#0A0A0C] p-1.5 rounded-xl border border-white/10">
             {[
               { id: 'THREE_STEP_TRANSFER', label: '★ Parcours 3 Écrans', badge: 'PRINCIPAL' },
-              { id: 'PROXIMITY_PAIRING', label: '1. Appairage Acoustique', badge: 'CHIRP' },
-              { id: 'RADAR_16FSK_STUDIO', label: '2. Radar Sonore & 16-FSK', badge: 'MFSK' },
-              { id: 'HUB_10_PROTOCOLS', label: '3. WebRTC LAN & Fichiers', badge: 'LAN' },
-              { id: 'NATIVE_SYSTEM_50_REPOS', label: '4. Documentation & Roadmap', badge: 'DOCS' },
+              { id: 'HUB_10_PROTOCOLS', label: 'WebRTC LAN & Fichiers', badge: 'LAN' },
+              { id: 'NATIVE_SYSTEM_50_REPOS', label: 'Documentation & Roadmap', badge: 'DOCS' },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -1484,37 +1479,7 @@ export default function SoundDropApp() {
         </div>
         )}
 
-        {/* MODULE 2: AirDrop Physics Bubble Radar & 16-FSK RS(80,64) FEC Studio */}
-        {(workspaceView === 'ALL_FUSED' || workspaceView === 'RADAR_16FSK_STUDIO') && (
-          <section aria-label="Radar Bulles AirDrop et Studio DSP 16-FSK" className="w-full flex flex-col gap-4">
-            <AcousticRadarStudioWorkspace
-              modeView="RADAR_STUDIO"
-              globalSelectedFile={selectedFile}
-              onSelectGlobalFile={(file) => setSelectedFile(file)}
-              onTelemetryUpdate={(liveSnr, liveFreq) => {
-                setSnrDb(liveSnr);
-                if (liveFreq > 0) setDominantFreq(liveFreq);
-              }}
-            />
-          </section>
-        )}
-
-        {/* MODULE 3: Acoustic Proximity Pairing (iPhone Emitter <-> Mac/PC Receiver) */}
-        {(workspaceView === 'ALL_FUSED' || workspaceView === 'PROXIMITY_PAIRING') && (
-          <section aria-label="Appairage Acoustique de Proximité iPhone vers Mac/PC" className="w-full flex flex-col gap-4">
-            <AcousticRadarStudioWorkspace
-              modeView="PROXIMITY_PAIRING"
-              globalSelectedFile={selectedFile}
-              onSelectGlobalFile={(file) => setSelectedFile(file)}
-              onTelemetryUpdate={(liveSnr, liveFreq) => {
-                setSnrDb(liveSnr);
-                if (liveFreq > 0) setDominantFreq(liveFreq);
-              }}
-            />
-          </section>
-        )}
-
-        {/* MODULE 4: Specifications, Documentation & Honest Roadmap */}
+        {/* Specifications, Documentation & Honest Roadmap */}
         {(workspaceView === 'ALL_FUSED' || workspaceView === 'NATIVE_SYSTEM_50_REPOS') && (
           <section aria-label="Feuille de Route & Documentation" className="w-full flex flex-col gap-4">
             <RoadmapDocsPanel />
