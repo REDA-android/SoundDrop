@@ -25,7 +25,6 @@ import { decode as decodeBlurHash } from 'blurhash';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { MorphIcon } from '@/components/ui/MorphIcon';
 import { DrawablySketchBadge } from '@/components/ui/DrawablySketchBadge';
-import { PageMascot } from '@/components/ui/PageMascot';
 import { MetalForgeShaderOrb } from '@/components/canvas/MetalForgeShaderOrb';
 import {
   MAX_ACOUSTIC_PAYLOAD_BYTES,
@@ -528,15 +527,8 @@ export function ThreeStepTransfer() {
           </div>
         </div>
 
-        {/* Mascotte interactive Koboyo.com */}
+        {/* Bascule ÉMETTEUR / RÉCEPTEUR avec MorphIcon */}
         <div className="flex items-center gap-3">
-          <PageMascot
-            mode={isTransmitting ? 'TRANSMITTING' : isListening ? 'RECEIVING' : completedTransfer ? 'COMPLETED' : 'IDLE'}
-            snrDb={rmsDbfs + 96}
-            isConnected={true}
-          />
-
-          {/* Bascule ÉMETTEUR / RÉCEPTEUR avec MorphIcon */}
           <div className="grid grid-cols-2 gap-1 bg-[#0A0B10] p-1 rounded-xl border border-white/[0.08] text-xs font-mono shadow-inner">
             <button
               type="button"

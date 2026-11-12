@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { SlidersHorizontal, ShieldCheck, Sparkles, Radio } from 'lucide-react';
-import { PageMascot } from '@/components/ui/PageMascot';
 import { MorphIcon } from '@/components/ui/MorphIcon';
 
 interface HeaderProps {
@@ -63,11 +62,6 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Controls & Status Badges */}
       <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-        {/* Interactive Mascot */}
-        <div className="scale-95 sm:scale-100 transition-transform">
-          <PageMascot mode={mode} snrDb={snrDb} isConnected={isP2PConnected} />
-        </div>
-
         {/* Live Status Pill */}
         <div
           role="status"

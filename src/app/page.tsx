@@ -56,7 +56,6 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { HairlineFigure } from '@/components/ui/HairlineFigures';
 import { MorphIcon } from '@/components/ui/MorphIcon';
 import { DrawablySketchBadge } from '@/components/ui/DrawablySketchBadge';
 import { MetalForgeShaderOrb } from '@/components/canvas/MetalForgeShaderOrb';
@@ -68,12 +67,11 @@ import { PeerCard } from '@/components/transfer/PeerCard';
 import { TransferMonitor } from '@/components/transfer/TransferMonitor';
 import { MeshParticleCanvas } from '@/components/canvas/MeshParticleCanvas';
 import { ThreeStepTransfer } from '@/components/transfer/ThreeStepTransfer';
-import { RoadmapDocsPanel } from '@/components/transfer/RoadmapDocsPanel';
 import { ClipboardSync } from '@/components/features/ClipboardSync';
 import { MultiFileZipTransfer } from '@/components/features/MultiFileZipTransfer';
 import { PushToTalkWalkie } from '@/components/features/PushToTalkWalkie';
 import { HybridQrAcousticSync } from '@/components/features/HybridQrAcousticSync';
-import { Layers, Network, BookOpen, Clipboard, Archive, PhoneCall, QrCode } from 'lucide-react';
+import { Layers, Clipboard, Archive, PhoneCall, QrCode } from 'lucide-react';
 import {
   MultiProtocolPanel,
   UnifiedProtocol,
@@ -794,43 +792,6 @@ export default function SoundDropApp() {
 
       {/* Main Responsive Studio Console (12-Column Grid on Desktop) */}
       <main id="main-content" className="w-full max-w-5xl flex flex-col gap-5 my-auto py-3 z-10">
-        {/* Interactive Isometric Hairline Telemetry Strip (lucasmarkes/hairline) */}
-        <section
-          aria-label="Télémétrie isométrique Hairline"
-          className="grid grid-cols-2 sm:grid-cols-4 gap-3"
-        >
-          <HairlineFigure
-            variant="VAULT"
-            active={Boolean(selectedFile)}
-            label="SOURCE LOCALE"
-            metric={
-              directoryAnalysis
-                ? `${directoryAnalysis.totalFiles} fichiers`
-                : selectedFile
-                ? `${(selectedFile.size / 1024).toFixed(1)} KB`
-                : '0 fichier (Vide)'
-            }
-          />
-          <HairlineFigure
-            variant="WAVE_MATRIX"
-            active={isAcousticEmitting || mode === 'RECEIVING'}
-            label="MODEM ACOUSTIQUE"
-            metric={snrDb > 0 ? `SNR ${snrDb.toFixed(1)} dB` : `${actualSampleRate / 1000} kHz FSK`}
-          />
-          <HairlineFigure
-            variant="MESH_RADAR"
-            active={connectionState === 'connected' || Boolean(currentRoomId)}
-            label="SALON P2P / HORS-LIGNE"
-            metric={currentRoomId ? `#${currentRoomId}` : 'Prêt (Online/Offline)'}
-          />
-          <HairlineFigure
-            variant="CONVEYOR"
-            active={mode === 'TRANSFERRING' || mode === 'COMPLETED'}
-            label="MODE RÉSEAU"
-            metric="Air-Gap & WebRTC LAN"
-          />
-        </section>
-
         {/* ELEGANT WORKSPACE SELECTOR */}
         <section
           aria-label="Sélecteur d'architecture unifiée SoundDrop"
@@ -850,7 +811,7 @@ export default function SoundDropApp() {
               <span>Modem ggwave WASM & WebRTC actif</span>
             </div>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-1.5 bg-[#08090F]/90 p-1.5 rounded-xl border border-white/[0.06]">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1.5 bg-[#08090F]/90 p-1.5 rounded-xl border border-white/[0.06]">
             {[
               {
                 id: 'THREE_STEP_TRANSFER',
@@ -881,18 +842,6 @@ export default function SoundDropApp() {
                 label: 'Sync QR / Son',
                 badge: 'OPTIQUE',
                 icon: <QrCode className="w-3.5 h-3.5" />,
-              },
-              {
-                id: 'HUB_10_PROTOCOLS',
-                label: 'Hub Réseau',
-                badge: '10 P2P',
-                icon: <Network className="w-3.5 h-3.5" />,
-              },
-              {
-                id: 'NATIVE_SYSTEM_50_REPOS',
-                label: 'Spécifications',
-                badge: 'DOCS',
-                icon: <BookOpen className="w-3.5 h-3.5" />,
               },
             ].map((tab) => {
               const isActive = workspaceView === tab.id;
@@ -1588,13 +1537,7 @@ export default function SoundDropApp() {
           </Card>
         </div>
         )}
-
-        {/* Specifications, Documentation & Honest Roadmap */}
-        {(workspaceView === 'ALL_FUSED' || workspaceView === 'NATIVE_SYSTEM_50_REPOS') && (
-          <section aria-label="Feuille de Route & Documentation" className="w-full flex flex-col gap-4">
-            <RoadmapDocsPanel />
-          </section>
-        )}
+        {/* Specifications, Documentation & Honest Roadmap - Retiré */}
       </main>
 
       <Footer />
