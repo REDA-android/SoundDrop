@@ -69,7 +69,11 @@ import { TransferMonitor } from '@/components/transfer/TransferMonitor';
 import { MeshParticleCanvas } from '@/components/canvas/MeshParticleCanvas';
 import { ThreeStepTransfer } from '@/components/transfer/ThreeStepTransfer';
 import { RoadmapDocsPanel } from '@/components/transfer/RoadmapDocsPanel';
-import { Layers, Network, BookOpen } from 'lucide-react';
+import { ClipboardSync } from '@/components/features/ClipboardSync';
+import { MultiFileZipTransfer } from '@/components/features/MultiFileZipTransfer';
+import { PushToTalkWalkie } from '@/components/features/PushToTalkWalkie';
+import { HybridQrAcousticSync } from '@/components/features/HybridQrAcousticSync';
+import { Layers, Network, BookOpen, Clipboard, Archive, PhoneCall, QrCode } from 'lucide-react';
 import {
   MultiProtocolPanel,
   UnifiedProtocol,
@@ -77,8 +81,12 @@ import {
 } from '@/components/transfer/MultiProtocolPanel';
 
 type AppMode = 'IDLE' | 'TRANSMITTING' | 'RECEIVING' | 'TRANSFERRING' | 'COMPLETED' | 'ERROR';
-type UnifiedWorkspaceView =
+export type UnifiedWorkspaceView =
   | 'THREE_STEP_TRANSFER'
+  | 'CLIPBOARD_SYNC'
+  | 'ZIP_TRANSFER'
+  | 'WALKIE_TALKIE'
+  | 'QR_ACOUSTIC_SYNC'
   | 'ALL_FUSED'
   | 'HUB_10_PROTOCOLS'
   | 'NATIVE_SYSTEM_50_REPOS';
@@ -842,25 +850,49 @@ export default function SoundDropApp() {
               <span>Modem ggwave WASM & WebRTC actif</span>
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-[#08090F]/90 p-1.5 rounded-xl border border-white/[0.06]">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-1.5 bg-[#08090F]/90 p-1.5 rounded-xl border border-white/[0.06]">
             {[
               {
                 id: 'THREE_STEP_TRANSFER',
-                label: 'Parcours AirDrop 3 Écrans',
-                badge: 'PRINCIPAL',
-                icon: <Radio className="w-4 h-4" />,
+                label: 'AirDrop Studio',
+                badge: 'AIR-GAP',
+                icon: <Radio className="w-3.5 h-3.5" />,
+              },
+              {
+                id: 'CLIPBOARD_SYNC',
+                label: 'Presse-Papier',
+                badge: 'SYNC',
+                icon: <Clipboard className="w-3.5 h-3.5" />,
+              },
+              {
+                id: 'ZIP_TRANSFER',
+                label: 'Multi-Fichiers',
+                badge: 'ZIP',
+                icon: <Archive className="w-3.5 h-3.5" />,
+              },
+              {
+                id: 'WALKIE_TALKIE',
+                label: 'Talkie-Walkie',
+                badge: 'PTT',
+                icon: <PhoneCall className="w-3.5 h-3.5" />,
+              },
+              {
+                id: 'QR_ACOUSTIC_SYNC',
+                label: 'Sync QR / Son',
+                badge: 'OPTIQUE',
+                icon: <QrCode className="w-3.5 h-3.5" />,
               },
               {
                 id: 'HUB_10_PROTOCOLS',
-                label: 'Hub Réseau 10 Protocoles',
-                badge: 'P2P / LAN',
-                icon: <Network className="w-4 h-4" />,
+                label: 'Hub Réseau',
+                badge: '10 P2P',
+                icon: <Network className="w-3.5 h-3.5" />,
               },
               {
                 id: 'NATIVE_SYSTEM_50_REPOS',
-                label: 'Architecture & Spécifications',
+                label: 'Spécifications',
                 badge: 'DOCS',
-                icon: <BookOpen className="w-4 h-4" />,
+                icon: <BookOpen className="w-3.5 h-3.5" />,
               },
             ].map((tab) => {
               const isActive = workspaceView === tab.id;
@@ -869,20 +901,20 @@ export default function SoundDropApp() {
                   key={tab.id}
                   type="button"
                   onClick={() => setWorkspaceView(tab.id as UnifiedWorkspaceView)}
-                  className={`flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl font-mono text-xs transition-all duration-200 cursor-pointer ${
+                  className={`flex flex-col sm:flex-row items-center justify-between gap-1 sm:gap-2 px-2.5 py-2 rounded-xl font-mono text-[11px] transition-all duration-200 cursor-pointer ${
                     isActive
                       ? 'bg-gradient-to-b from-[#22283C] to-[#141826] text-white font-semibold border border-white/[0.16] shadow-[0_4px_20px_rgba(0,0,0,0.45)]'
                       : 'bg-transparent text-slate-400 hover:text-slate-200 hover:bg-white/[0.03]'
                   }`}
                 >
-                  <span className="flex items-center gap-2.5 truncate">
+                  <span className="flex items-center gap-1.5 truncate">
                     <span className={isActive ? 'text-[#FF6A1F]' : 'text-slate-500'}>
                       {tab.icon}
                     </span>
                     <span className="truncate">{tab.label}</span>
                   </span>
                   <span
-                    className={`px-1.5 py-0.5 rounded text-[9px] font-bold tracking-wider ${
+                    className={`px-1 py-0.2 rounded text-[8px] font-bold tracking-wider ${
                       isActive
                         ? 'bg-[#FF6A1F]/20 text-[#FF6A1F] border border-[#FF6A1F]/30'
                         : 'bg-white/[0.04] text-slate-500'
@@ -996,6 +1028,58 @@ export default function SoundDropApp() {
         {(workspaceView === 'THREE_STEP_TRANSFER' || workspaceView === 'ALL_FUSED') && (
           <section aria-label="Parcours de transfert acoustique en 3 étapes" className="w-full">
             <ThreeStepTransfer />
+          </section>
+        )}
+
+        {/* ONGLET 2: PRESSE-PAPIER SYNCHRONISÉ */}
+        {workspaceView === 'CLIPBOARD_SYNC' && (
+          <section aria-label="Presse-papier synchronisé" className="w-full">
+            <ClipboardSync
+              onEmitP2PClipboard={(t) =>
+                streamerRef.current ? streamerRef.current.sendClipboardMessage('Moi', t) : false
+              }
+              incomingClipboards={incomingClipboards.map((c) => ({
+                id: c.id,
+                content: c.payload,
+                type: /^https?:\/\//i.test(c.payload) ? 'url' : 'text',
+                timestamp: c.timestamp,
+                source: 'p2p',
+              }))}
+            />
+          </section>
+        )}
+
+        {/* ONGLET 3: TRANSFERT MULTI-FICHIERS ZIP EN STREAMING */}
+        {workspaceView === 'ZIP_TRANSFER' && (
+          <section aria-label="Transfert multi-fichiers ZIP" className="w-full">
+            <MultiFileZipTransfer
+              onZipReadyForTransfer={(zipFile) => {
+                setSelectedFile(zipFile);
+                setWorkspaceView('THREE_STEP_TRANSFER');
+              }}
+            />
+          </section>
+        )}
+
+        {/* ONGLET 4: TALKIE-WALKIE P2P HORS-LIGNE (PUSH-TO-TALK) */}
+        {workspaceView === 'WALKIE_TALKIE' && (
+          <section aria-label="Talkie-Walkie P2P hors-ligne" className="w-full">
+            <PushToTalkWalkie />
+          </section>
+        )}
+
+        {/* ONGLET 5: SYNCHRONISATION QR CODE & SON HYBRIDE */}
+        {workspaceView === 'QR_ACOUSTIC_SYNC' && (
+          <section aria-label="Synchronisation QR code et son hybride" className="w-full">
+            <HybridQrAcousticSync
+              currentPayload={shareUrl || offlineSdpToken || (currentRoomId ? `SDO1:${currentRoomId}` : 'SOUNDDROP_AIRGAP_READY')}
+              onScannedToken={(tok) => {
+                void connectReceiverToRoom(tok, false);
+              }}
+              onEmitChirpBeacon={() => {
+                void emitChirpOnce(currentRoomId || 'BEACON', bandMode, acousticEngine);
+              }}
+            />
           </section>
         )}
 
